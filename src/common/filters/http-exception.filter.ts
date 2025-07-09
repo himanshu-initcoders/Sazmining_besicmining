@@ -25,7 +25,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     };
 
     if (exception instanceof HttpException) {
-      const httpException = exception as HttpException;
+      const httpException = exception;
       status = httpException.getStatus();
       const response = httpException.getResponse();
 
@@ -41,10 +41,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       errorResponse.error = {
         code: 'INTERNAL_SERVER_ERROR',
         message: exception.message || 'Internal server error',
-        details: process.env.NODE_ENV === 'development' ? exception.stack : undefined,
+        details:
+          process.env.NODE_ENV === 'development' ? exception.stack : undefined,
       };
     }
 
     response.status(status).json(errorResponse);
   }
-} 
+}

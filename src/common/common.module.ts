@@ -5,4 +5,4 @@ import { PaginationService } from './services/pagination.service';
   providers: [PaginationService],
   exports: [PaginationService],
 })
-export class CommonModule {} 
+export class CommonModule {}

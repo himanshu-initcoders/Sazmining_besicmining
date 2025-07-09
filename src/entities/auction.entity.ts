@@ -1,4 +1,14 @@
-import { Entity, Column, ObjectIdColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ObjectIdColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { IsNotEmpty, IsNumber } from 'class-validator';
 import { Product } from './product.entity';
 import { User } from './user.entity';
@@ -8,7 +18,7 @@ export enum AuctionStatus {
   PENDING = 'Pending',
   ACTIVE = 'Active',
   COMPLETED = 'Completed',
-  CANCELLED = 'Cancelled'
+  CANCELLED = 'Cancelled',
 }
 
 @Entity('auctions')
@@ -47,11 +57,11 @@ export class Auction {
   @Column({
     type: 'enum',
     enum: AuctionStatus,
-    default: AuctionStatus.PENDING
+    default: AuctionStatus.PENDING,
   })
   auctionStatus: string;
 
-  @OneToMany(() => Bid, bid => bid.auctionId)
+  @OneToMany(() => Bid, (bid) => bid.auctionId)
   bids: Bid[];
 
   @CreateDateColumn()

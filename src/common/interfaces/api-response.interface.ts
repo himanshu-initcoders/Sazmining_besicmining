@@ -7,4 +7,4 @@ export interface ApiResponse<T> {
     details?: any;
   };
   timestamp: string;
-} 
+}

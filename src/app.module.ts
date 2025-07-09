@@ -1,4 +1,9 @@
-import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import {
+  Module,
+  NestModule,
+  MiddlewareConsumer,
+  RequestMethod,
+} from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -39,7 +44,7 @@ import { APP_FILTER } from '@nestjs/core';
       Cart,
       CartItem,
       Auction,
-      Bid
+      Bid,
     ]),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
@@ -60,21 +65,17 @@ import { APP_FILTER } from '@nestjs/core';
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
-    } 
+    },
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Apply security middleware first (for all routes)
-    consumer
-      .apply(SecurityMiddleware)
-      .forRoutes('*');
-      
+    consumer.apply(SecurityMiddleware).forRoutes('*');
+
     // Apply logger middleware to all routes
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes('*');
-    
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+
     // Apply JWT auth middleware to protected routes
     consumer
       .apply(JwtAuthMiddleware)
@@ -83,13 +84,13 @@ export class AppModule implements NestModule {
         { path: 'auth/signup', method: RequestMethod.POST },
         { path: 'auth/refresh', method: RequestMethod.POST },
         { path: 'products/public', method: RequestMethod.GET },
-        { path: 'products/public/(.*)', method: RequestMethod.GET }
+        { path: 'products/public/(.*)', method: RequestMethod.GET },
       )
       .forRoutes(
         { path: 'users', method: RequestMethod.ALL },
         { path: 'cart', method: RequestMethod.ALL },
         { path: 'upload', method: RequestMethod.ALL },
-        { path: 'products', method: RequestMethod.ALL }
+        { path: 'products', method: RequestMethod.ALL },
       );
   }
 }

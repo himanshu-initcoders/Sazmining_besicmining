@@ -1,13 +1,23 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { PaginatedResponse } from '../dto/pagination.dto';
 
 @Injectable()
-export class PaginationInterceptor<T> implements NestInterceptor<T, PaginatedResponse<T>> {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<PaginatedResponse<T>> {
+export class PaginationInterceptor<T>
+  implements NestInterceptor<T, PaginatedResponse<T>>
+{
+  intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Observable<PaginatedResponse<T>> {
     return next.handle().pipe(
-      map(response => {
+      map((response) => {
         if (!response?.data || !response?.meta) {
           return response;
         }
@@ -24,4 +34,4 @@ export class PaginationInterceptor<T> implements NestInterceptor<T, PaginatedRes
       }),
     );
   }
-} 
+}

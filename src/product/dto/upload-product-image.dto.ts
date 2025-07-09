@@ -6,4 +6,4 @@ export class UploadProductImageDto {
   @IsNumber()
   @Type(() => Number)
   productId: number;
-} 
+}

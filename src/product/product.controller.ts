@@ -67,10 +67,7 @@ export class ProductController {
    */
   @Post()
   @UseGuards(JwtAuthGuard)
-  async create(
-    @Body() createProductDto: CreateProductDto,
-    @Request() req,
-  ) {
+  async create(@Body() createProductDto: CreateProductDto, @Request() req) {
     return this.productService.create(createProductDto, req.user.id);
   }
 
@@ -80,10 +77,7 @@ export class ProductController {
    */
   @Get()
   @UseGuards(JwtAuthGuard)
-  async findAll(
-    @Query() queryDto: ProductQueryDto,
-    @Request() req,
-  ) {
+  async findAll(@Query() queryDto: ProductQueryDto, @Request() req) {
     // If user is admin, show all products, otherwise show only user's products
     if (req.user.role === UserRole.ADMIN) {
       return this.productService.findAll(queryDto);
@@ -98,10 +92,7 @@ export class ProductController {
    */
   @Get('my')
   @UseGuards(JwtAuthGuard)
-  async findMyProducts(
-    @Query() queryDto: ProductQueryDto,
-    @Request() req,
-  ) {
+  async findMyProducts(@Query() queryDto: ProductQueryDto, @Request() req) {
     return this.productService.findByUser(req.user.id, queryDto);
   }
 
@@ -136,7 +127,7 @@ export class ProductController {
   @Get('user/:userId/statistics')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async getUserStatistics(@Param('userId') userId: string) {
+  async getUserStatistics(@Param('userId') userId: number) {
     return this.productService.getStatistics(userId);
   }
 
@@ -157,17 +148,14 @@ export class ProductController {
    */
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  async findOne(
-    @Param('id', ParseIntPipe) id: number,
-    @Request() req,
-  ) {
+  async findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
     const product = await this.productService.findOne(id);
-    
+
     // Users can only see their own products (unless admin)
     if (req.user.role !== UserRole.ADMIN && product.userId !== req.user.id) {
       return this.productService.findPublishedOne(id);
     }
-    
+
     return product;
   }
 
@@ -191,10 +179,7 @@ export class ProductController {
    */
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  async remove(
-    @Param('id', ParseIntPipe) id: number,
-    @Request() req,
-  ) {
+  async remove(@Param('id', ParseIntPipe) id: number, @Request() req) {
     await this.productService.remove(id, req.user.id);
     return { message: 'Product deleted successfully' };
   }
@@ -213,4 +198,4 @@ export class ProductController {
   ) {
     return this.productService.uploadImage(id, file, req.user.id);
   }
-} 
+}

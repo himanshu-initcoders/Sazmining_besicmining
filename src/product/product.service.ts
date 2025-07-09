@@ -1,14 +1,22 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder, Between } from 'typeorm';
-import { Product, ProductStatus, PublishStatus, AvailabilityStatus } from '../entities/product.entity';
+import {
+  Product,
+  ProductStatus,
+  PublishStatus,
+  AvailabilityStatus,
+} from '../entities/product.entity';
 import { User } from '../entities/user.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { PaginationService } from '../common/services/pagination.service';
 import { PaginatedResponse } from '../common/interfaces/pagination.interface';
-import { ImageService, StorageLocation } from '../upload/services/image.service';
+import {
+  ImageService,
+  StorageLocation,
+} from '../upload/services/image.service';
 import { AppException } from '../common/exceptions/app.exception';
 import { ErrorCodes } from '../common/exceptions/error-codes';
 
@@ -29,21 +37,24 @@ export class ProductService {
    * @param userId User creating the product
    * @returns Created product
    */
-  async create(createProductDto: CreateProductDto, userId: string): Promise<Product> {
+  async create(
+    createProductDto: CreateProductDto,
+    userId: number,
+  ): Promise<Product> {
     // Verify user exists
-    const user = await this.userRepository.findOne({ where: { id: parseInt(userId) } });
+    const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new AppException(
         'User not found',
         ErrorCodes.USER_NOT_FOUND,
         HttpStatus.NOT_FOUND,
-        { userId }
+        { userId },
       );
     }
 
     // Check if serial number already exists
     const existingProduct = await this.productRepository.findOne({
-      where: { serialNumber: createProductDto.serialNumber }
+      where: { serialNumber: createProductDto.serialNumber },
     });
 
     if (existingProduct) {
@@ -51,36 +62,40 @@ export class ProductService {
         'Product with this serial number already exists',
         ErrorCodes.PRODUCT_ALREADY_EXISTS,
         HttpStatus.CONFLICT,
-        { serialNumber: createProductDto.serialNumber }
+        { serialNumber: createProductDto.serialNumber },
       );
     }
 
     // Validate auction dates if it's a bid auction
     if (createProductDto.auctionType === 'Bid') {
-      if (!createProductDto.auctionStartDate || !createProductDto.auctionEndDate) {
+      if (
+        !createProductDto.auctionStartDate ||
+        !createProductDto.auctionEndDate
+      ) {
         throw new AppException(
           'Auction start and end dates are required for bid auctions',
           ErrorCodes.INVALID_AUCTION_DATES,
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
 
-      if (createProductDto.auctionStartDate >= createProductDto.auctionEndDate) {
+      if (
+        createProductDto.auctionStartDate >= createProductDto.auctionEndDate
+      ) {
         throw new AppException(
           'Auction end date must be after start date',
           ErrorCodes.INVALID_AUCTION_DATES,
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
     }
 
     // Create the product
-    const product = this.productRepository.create({
-      ...createProductDto,
-      userId,
-    });
+    const newProduct = new Product();
+    Object.assign(newProduct, createProductDto);
+    newProduct.userId = userId.toString();
 
-    return await this.productRepository.save(product);
+    return await this.productRepository.save(newProduct);
   }
 
   /**
@@ -88,8 +103,11 @@ export class ProductService {
    * @param queryDto Query parameters
    * @returns Paginated products
    */
-  async findAll(queryDto: ProductQueryDto): Promise<PaginatedResponse<Product>> {
-    const queryBuilder = this.productRepository.createQueryBuilder('product')
+  async findAll(
+    queryDto: ProductQueryDto,
+  ): Promise<PaginatedResponse<Product>> {
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('product')
       .leftJoinAndSelect('product.user', 'user');
 
     // Apply filters
@@ -101,13 +119,13 @@ export class ProductService {
       'product.description',
       'product.manufacturer',
       'product.serialNumber',
-      'product.sku'
+      'product.sku',
     ];
 
     return await this.paginationService.paginate(
       queryBuilder,
       queryDto,
-      searchColumns
+      searchColumns,
     );
   }
 
@@ -116,8 +134,11 @@ export class ProductService {
    * @param queryDto Query parameters
    * @returns Paginated published products
    */
-  async findPublished(queryDto: ProductQueryDto): Promise<PaginatedResponse<Product>> {
-    const queryBuilder = this.productRepository.createQueryBuilder('product')
+  async findPublished(
+    queryDto: ProductQueryDto,
+  ): Promise<PaginatedResponse<Product>> {
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('product')
       .leftJoinAndSelect('product.user', 'user')
       .where('product.status = :status', { status: PublishStatus.PUBLISHED })
       .andWhere('product.isActive = :isActive', { isActive: true });
@@ -128,13 +149,13 @@ export class ProductService {
     const searchColumns = [
       'product.modelName',
       'product.description',
-      'product.manufacturer'
+      'product.manufacturer',
     ];
 
     return await this.paginationService.paginate(
       queryBuilder,
       queryDto,
-      searchColumns
+      searchColumns,
     );
   }
 
@@ -144,8 +165,12 @@ export class ProductService {
    * @param queryDto Query parameters
    * @returns User's products
    */
-  async findByUser(userId: string, queryDto: ProductQueryDto): Promise<PaginatedResponse<Product>> {
-    const queryBuilder = this.productRepository.createQueryBuilder('product')
+  async findByUser(
+    userId: string,
+    queryDto: ProductQueryDto,
+  ): Promise<PaginatedResponse<Product>> {
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('product')
       .leftJoinAndSelect('product.user', 'user')
       .where('product.userId = :userId', { userId });
 
@@ -157,13 +182,13 @@ export class ProductService {
       'product.description',
       'product.manufacturer',
       'product.serialNumber',
-      'product.sku'
+      'product.sku',
     ];
 
     return await this.paginationService.paginate(
       queryBuilder,
       queryDto,
-      searchColumns
+      searchColumns,
     );
   }
 
@@ -175,7 +200,7 @@ export class ProductService {
   async findOne(id: number): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['user']
+      relations: ['user'],
     });
 
     if (!product) {
@@ -183,7 +208,7 @@ export class ProductService {
         'Product not found',
         ErrorCodes.PRODUCT_NOT_FOUND,
         HttpStatus.NOT_FOUND,
-        { id }
+        { id },
       );
     }
 
@@ -197,12 +222,12 @@ export class ProductService {
    */
   async findPublishedOne(id: number): Promise<Product> {
     const product = await this.productRepository.findOne({
-      where: { 
+      where: {
         id,
         status: PublishStatus.PUBLISHED,
-        isActive: true
+        isActive: true,
       },
-      relations: ['user']
+      relations: ['user'],
     });
 
     if (!product) {
@@ -210,7 +235,7 @@ export class ProductService {
         'Product not found or not available',
         ErrorCodes.PRODUCT_NOT_FOUND,
         HttpStatus.NOT_FOUND,
-        { id }
+        { id },
       );
     }
 
@@ -224,7 +249,11 @@ export class ProductService {
    * @param userId User updating the product
    * @returns Updated product
    */
-  async update(id: number, updateProductDto: UpdateProductDto, userId: string): Promise<Product> {
+  async update(
+    id: number,
+    updateProductDto: UpdateProductDto,
+    userId: string,
+  ): Promise<Product> {
     const product = await this.findOne(id);
 
     // Check if user owns the product
@@ -233,14 +262,17 @@ export class ProductService {
         'You do not have permission to update this product',
         ErrorCodes.INSUFFICIENT_PERMISSIONS,
         HttpStatus.FORBIDDEN,
-        { productId: id, userId }
+        { productId: id, userId },
       );
     }
 
     // Check if serial number is being updated and if it already exists
-    if (updateProductDto.serialNumber && updateProductDto.serialNumber !== product.serialNumber) {
+    if (
+      updateProductDto.serialNumber &&
+      updateProductDto.serialNumber !== product.serialNumber
+    ) {
       const existingProduct = await this.productRepository.findOne({
-        where: { serialNumber: updateProductDto.serialNumber }
+        where: { serialNumber: updateProductDto.serialNumber },
       });
 
       if (existingProduct) {
@@ -248,21 +280,22 @@ export class ProductService {
           'Product with this serial number already exists',
           ErrorCodes.PRODUCT_ALREADY_EXISTS,
           HttpStatus.CONFLICT,
-          { serialNumber: updateProductDto.serialNumber }
+          { serialNumber: updateProductDto.serialNumber },
         );
       }
     }
 
     // Validate auction dates if updating to bid auction
     if (updateProductDto.auctionType === 'Bid') {
-      const startDate = updateProductDto.auctionStartDate || product.auctionStartDate;
+      const startDate =
+        updateProductDto.auctionStartDate || product.auctionStartDate;
       const endDate = updateProductDto.auctionEndDate || product.auctionEndDate;
 
       if (!startDate || !endDate) {
         throw new AppException(
           'Auction start and end dates are required for bid auctions',
           ErrorCodes.INVALID_AUCTION_DATES,
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
 
@@ -270,7 +303,7 @@ export class ProductService {
         throw new AppException(
           'Auction end date must be after start date',
           ErrorCodes.INVALID_AUCTION_DATES,
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
     }
@@ -294,7 +327,7 @@ export class ProductService {
         'You do not have permission to delete this product',
         ErrorCodes.INSUFFICIENT_PERMISSIONS,
         HttpStatus.FORBIDDEN,
-        { productId: id, userId }
+        { productId: id, userId },
       );
     }
 
@@ -308,7 +341,11 @@ export class ProductService {
    * @param userId User uploading the image
    * @returns Updated product with image URL
    */
-  async uploadImage(productId: number, file: Express.Multer.File, userId: string): Promise<Product> {
+  async uploadImage(
+    productId: number,
+    file: Express.Multer.File,
+    userId: string,
+  ): Promise<Product> {
     const product = await this.findOne(productId);
 
     // Check if user owns the product
@@ -317,7 +354,7 @@ export class ProductService {
         'You do not have permission to update this product',
         ErrorCodes.INSUFFICIENT_PERMISSIONS,
         HttpStatus.FORBIDDEN,
-        { productId, userId }
+        { productId, userId },
       );
     }
 
@@ -325,7 +362,7 @@ export class ProductService {
       throw new AppException(
         'No file provided',
         ErrorCodes.FILE_NOT_PROVIDED,
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -343,15 +380,52 @@ export class ProductService {
   }
 
   /**
+   * Update product quantity after purchase
+   * @param productId The product ID
+   * @param quantityPurchased The quantity that was purchased
+   * @returns The updated product
+   */
+  async updateProductQuantityAfterPurchase(
+    productId: number,
+    quantityPurchased: number
+  ): Promise<Product> {
+    const product = await this.findOne(productId);
+
+    // Only update quantity for limited stock products
+    if (product.stockType === 'limited') {
+      if (product.quantity < quantityPurchased) {
+        throw new AppException(
+          `Insufficient stock for product`,
+          ErrorCodes.INSUFFICIENT_STOCK,
+          HttpStatus.BAD_REQUEST,
+          { productId, requested: quantityPurchased, available: product.quantity }
+        );
+      }
+
+      // Reduce available quantity
+      product.quantity -= quantityPurchased;
+
+      // If stock reaches 0, update availability status
+      if (product.quantity === 0) {
+        product.availability = 'Out of Stock';
+      }
+
+      return await this.productRepository.save(product);
+    }
+
+    return product;
+  }
+
+  /**
    * Get product statistics
    * @param userId Optional user ID to filter by user
    * @returns Product statistics
    */
-  async getStatistics(userId?: string) {
+  async getStatistics(userId?: number) {
     const baseQuery = this.productRepository.createQueryBuilder('product');
-    
+
     if (userId) {
-      baseQuery.where('product.userId = :userId', { userId });
+      baseQuery.where('product.user.id = :userId', { userId });
     }
 
     const [
@@ -363,17 +437,49 @@ export class ProductService {
       inStock,
       outOfStock,
       marketplace,
-      retail
+      retail,
     ] = await Promise.all([
       baseQuery.getCount(),
-      baseQuery.clone().where('product.status = :status', { status: PublishStatus.PUBLISHED }).getCount(),
-      baseQuery.clone().where('product.status = :status', { status: PublishStatus.DRAFT }).getCount(),
-      baseQuery.clone().where('product.productStatus = :status', { status: ProductStatus.ONLINE }).getCount(),
-      baseQuery.clone().where('product.productStatus = :status', { status: ProductStatus.OFFLINE }).getCount(),
-      baseQuery.clone().where('product.availability = :availability', { availability: AvailabilityStatus.IN_STOCK }).getCount(),
-      baseQuery.clone().where('product.availability = :availability', { availability: AvailabilityStatus.OUT_OF_STOCK }).getCount(),
-      baseQuery.clone().where('product.type = :type', { type: 'marketplace' }).getCount(),
-      baseQuery.clone().where('product.type = :type', { type: 'retail' }).getCount(),
+      baseQuery
+        .clone()
+        .where('product.status = :status', { status: PublishStatus.PUBLISHED })
+        .getCount(),
+      baseQuery
+        .clone()
+        .where('product.status = :status', { status: PublishStatus.DRAFT })
+        .getCount(),
+      baseQuery
+        .clone()
+        .where('product.productStatus = :status', {
+          status: ProductStatus.ONLINE,
+        })
+        .getCount(),
+      baseQuery
+        .clone()
+        .where('product.productStatus = :status', {
+          status: ProductStatus.OFFLINE,
+        })
+        .getCount(),
+      baseQuery
+        .clone()
+        .where('product.availability = :availability', {
+          availability: AvailabilityStatus.IN_STOCK,
+        })
+        .getCount(),
+      baseQuery
+        .clone()
+        .where('product.availability = :availability', {
+          availability: AvailabilityStatus.OUT_OF_STOCK,
+        })
+        .getCount(),
+      baseQuery
+        .clone()
+        .where('product.type = :type', { type: 'marketplace' })
+        .getCount(),
+      baseQuery
+        .clone()
+        .where('product.type = :type', { type: 'retail' })
+        .getCount(),
     ]);
 
     return {
@@ -393,7 +499,7 @@ export class ProductService {
       byType: {
         marketplace,
         retail,
-      }
+      },
     };
   }
 
@@ -402,7 +508,10 @@ export class ProductService {
    * @param queryBuilder TypeORM query builder
    * @param queryDto Query parameters
    */
-  private applyFilters(queryBuilder: SelectQueryBuilder<Product>, queryDto: ProductQueryDto): void {
+  private applyFilters(
+    queryBuilder: SelectQueryBuilder<Product>,
+    queryDto: ProductQueryDto,
+  ): void {
     const {
       type,
       cooling,
@@ -420,7 +529,7 @@ export class ProductService {
       maxPower,
       isActive,
       hosting,
-      userId
+      userId,
     } = queryDto;
 
     if (type) {
@@ -432,13 +541,18 @@ export class ProductService {
     }
 
     if (manufacturer) {
-      queryBuilder.andWhere('LOWER(product.manufacturer) LIKE LOWER(:manufacturer)', {
-        manufacturer: `%${manufacturer}%`
-      });
+      queryBuilder.andWhere(
+        'LOWER(product.manufacturer) LIKE LOWER(:manufacturer)',
+        {
+          manufacturer: `%${manufacturer}%`,
+        },
+      );
     }
 
     if (productStatus) {
-      queryBuilder.andWhere('product.productStatus = :productStatus', { productStatus });
+      queryBuilder.andWhere('product.productStatus = :productStatus', {
+        productStatus,
+      });
     }
 
     if (status) {
@@ -446,11 +560,15 @@ export class ProductService {
     }
 
     if (availability) {
-      queryBuilder.andWhere('product.availability = :availability', { availability });
+      queryBuilder.andWhere('product.availability = :availability', {
+        availability,
+      });
     }
 
     if (auctionType) {
-      queryBuilder.andWhere('product.auctionType = :auctionType', { auctionType });
+      queryBuilder.andWhere('product.auctionType = :auctionType', {
+        auctionType,
+      });
     }
 
     if (stockType) {
@@ -466,11 +584,15 @@ export class ProductService {
     }
 
     if (minHashRate !== undefined) {
-      queryBuilder.andWhere('product.hashRate >= :minHashRate', { minHashRate });
+      queryBuilder.andWhere('product.hashRate >= :minHashRate', {
+        minHashRate,
+      });
     }
 
     if (maxHashRate !== undefined) {
-      queryBuilder.andWhere('product.hashRate <= :maxHashRate', { maxHashRate });
+      queryBuilder.andWhere('product.hashRate <= :maxHashRate', {
+        maxHashRate,
+      });
     }
 
     if (minPower !== undefined) {
@@ -493,4 +615,4 @@ export class ProductService {
       queryBuilder.andWhere('product.userId = :userId', { userId });
     }
   }
-} 
+}

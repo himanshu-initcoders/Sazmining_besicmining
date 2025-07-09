@@ -10,16 +10,16 @@ export class MainSeeder implements Seeder {
   public async run(dataSource: DataSource): Promise<void> {
     console.log('🌱 Starting MainSeeder...');
     this.logger.log('Running all seeders...');
-    
+
     try {
       console.log('🏃 Running UserSeeder...');
       await runSeeder(dataSource, UserSeeder);
       console.log('✅ UserSeeder completed');
-      
+
       console.log('🏃 Running ProductSeeder...');
       await runSeeder(dataSource, ProductSeeder);
       console.log('✅ ProductSeeder completed');
-      
+
       console.log('🎉 All seeders completed successfully');
       this.logger.log('All seeders completed successfully');
     } catch (error) {
@@ -28,4 +28,4 @@ export class MainSeeder implements Seeder {
       throw error;
     }
   }
-} 
+}

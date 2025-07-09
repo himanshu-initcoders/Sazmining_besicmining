@@ -36,4 +36,4 @@ export interface PaginatedResponse<T> {
     lastPage: number;
     limit: number;
   };
-} 
+}

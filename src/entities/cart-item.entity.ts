@@ -1,4 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { IsNotEmpty, IsNumber } from 'class-validator';
 import { Cart } from './cart.entity';
 import { Product } from './product.entity';
@@ -12,7 +18,7 @@ export class CartItem {
   @IsNotEmpty()
   cartId: number;
 
-  @ManyToOne(() => Cart, cart => cart.items)
+  @ManyToOne(() => Cart, (cart) => cart.items)
   @JoinColumn({ name: 'cartId' })
   cart: Cart;
 
@@ -28,4 +34,4 @@ export class CartItem {
   @IsNumber()
   @IsNotEmpty()
   quantity: number;
-} 
+}

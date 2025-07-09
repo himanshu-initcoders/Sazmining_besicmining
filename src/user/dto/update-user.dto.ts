@@ -1,4 +1,10 @@
-import { IsEmail, IsString, MinLength, IsBoolean, IsOptional } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  IsBoolean,
+  IsOptional,
+} from 'class-validator';
 import { UserRole } from '../../entities/user.entity';
 
 export class UpdateUserDto {
@@ -38,4 +44,4 @@ export class UpdateUserDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
-} 
+}

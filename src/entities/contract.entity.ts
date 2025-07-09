@@ -1,4 +1,9 @@
-import { Entity, Column, ObjectIdColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ObjectIdColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
 
 @Entity('contracts')
@@ -31,4 +36,4 @@ export class Contract {
   @Column({ type: 'float' })
   @IsNumber()
   salesTaxPercent: number;
-} 
+}

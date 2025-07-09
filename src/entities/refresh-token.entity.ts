@@ -1,4 +1,12 @@
-import { Entity, Column, ObjectIdColumn, ManyToOne, CreateDateColumn, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ObjectIdColumn,
+  ManyToOne,
+  CreateDateColumn,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('refresh_tokens')

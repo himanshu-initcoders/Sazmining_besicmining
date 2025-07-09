@@ -1,4 +1,11 @@
-import { IsEnum, IsOptional, IsArray, IsNumber, IsString, Min } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsArray,
+  IsNumber,
+  IsString,
+  Min,
+} from 'class-validator';
 import { StorageLocation } from '../services/image.service';
 import { Transform } from 'class-transformer';
 
@@ -20,9 +27,9 @@ export class UploadImageDto {
   @IsArray()
   @Transform(({ value }) => {
     if (typeof value === 'string') {
-      return value.split(',').map(type => type.trim());
+      return value.split(',').map((type) => type.trim());
     }
     return value;
   })
   allowedMimeTypes?: string[];
-} 
+}

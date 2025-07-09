@@ -18,4 +18,4 @@ import { CartModule } from '../cart/cart.module';
   providers: [UserService],
   exports: [UserService],
 })
-export class UserModule {} 
+export class UserModule {}

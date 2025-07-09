@@ -71,22 +71,19 @@ export class UserController {
   ) {
     return this.userService.uploadProfilePhoto(id, file);
   }
-  
+
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   getProfile(@Request() req) {
     return this.userService.findOne(req.user.id);
   }
-  
+
   @Patch('profile')
   @UseGuards(JwtAuthGuard)
-  updateProfile(
-    @Request() req,
-    @Body() updateProfileDto: UpdateProfileDto,
-  ) {
+  updateProfile(@Request() req, @Body() updateProfileDto: UpdateProfileDto) {
     return this.userService.update(req.user.id, updateProfileDto);
   }
-  
+
   @Post('profile/photo')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
@@ -96,4 +93,4 @@ export class UserController {
   ) {
     return this.userService.uploadProfilePhoto(req.user.id, file);
   }
-} 
+}

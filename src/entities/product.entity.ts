@@ -1,43 +1,60 @@
-import { Entity, Column, CreateDateColumn, UpdateDateColumn, PrimaryGeneratedColumn } from 'typeorm';
-import { IsNotEmpty, IsString, IsBoolean, IsNumber, IsOptional, IsDate, IsUrl } from 'class-validator';
+import {
+  Entity,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  PrimaryGeneratedColumn,
+  JoinColumn,
+  ManyToOne,
+} from 'typeorm';
+import {
+  IsNotEmpty,
+  IsString,
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsDate,
+  IsUrl,
+} from 'class-validator';
+import { User } from './user.entity';
 
 export enum ProductType {
   MARKETPLACE = 'marketplace',
-  RETAIL = 'retail'
+  RETAIL = 'retail',
 }
 
 export enum CoolingType {
   AIR = 'air',
   LIQUID = 'liquid',
-  IMMERSION = 'immersion'
+  IMMERSION = 'immersion',
 }
 
 export enum ProductStatus {
   ONLINE = 'Online',
   OFFLINE = 'Offline',
-  MAINTENANCE = 'Maintenance'
+  MAINTENANCE = 'Maintenance',
 }
 
 export enum PublishStatus {
   PUBLISHED = 'Published',
   DRAFT = 'Draft',
-  PENDING = 'Pending'
+  PENDING = 'Pending',
 }
 
 export enum AvailabilityStatus {
   IN_STOCK = 'In Stock',
   OUT_OF_STOCK = 'Out of Stock',
-  PRE_ORDER = 'Pre Order'
+  PRE_ORDER = 'Pre Order',
 }
 
 export enum AuctionType {
   BID = 'Bid',
-  FIXED = 'Fixed'
+  FIXED = 'Fixed',
 }
 
 export enum StockType {
   LIMITED = 'limited',
-  UNLIMITED = 'unlimited'
+  UNLIMITED = 'unlimited',
 }
 
 @Entity('products')
@@ -93,14 +110,14 @@ export class Product {
   @Column({
     type: 'enum',
     enum: ProductType,
-    default: ProductType.MARKETPLACE
+    default: ProductType.MARKETPLACE,
   })
   type: string;
 
   @Column({
     type: 'enum',
     enum: CoolingType,
-    default: CoolingType.AIR
+    default: CoolingType.AIR,
   })
   cooling: string;
 
@@ -111,21 +128,21 @@ export class Product {
   @Column({
     type: 'enum',
     enum: ProductStatus,
-    default: ProductStatus.ONLINE
+    default: ProductStatus.ONLINE,
   })
   productStatus: string;
 
   @Column({
     type: 'enum',
     enum: PublishStatus,
-    default: PublishStatus.DRAFT
+    default: PublishStatus.DRAFT,
   })
   status: string;
 
   @Column({
     type: 'enum',
     enum: AvailabilityStatus,
-    default: AvailabilityStatus.IN_STOCK
+    default: AvailabilityStatus.IN_STOCK,
   })
   availability: string;
 
@@ -136,7 +153,7 @@ export class Product {
   @Column({
     type: 'enum',
     enum: AuctionType,
-    default: AuctionType.FIXED
+    default: AuctionType.FIXED,
   })
   auctionType: string;
 
@@ -166,16 +183,24 @@ export class Product {
   @Column({
     type: 'enum',
     enum: StockType,
-    default: StockType.LIMITED
+    default: StockType.LIMITED,
   })
   stockType: string;
 
-  @Column()
-  userId: string;
+  @Column({ default: 0 })
+  @IsNumber()
+  quantity: number;
+
+  @ManyToOne(() => User, (user) => user.id)
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
+  @Column({ nullable: true })
+  userId?: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
-} 
+}

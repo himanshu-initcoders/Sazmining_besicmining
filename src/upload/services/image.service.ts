@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 export enum StorageLocation {
   LOCAL = 'local',
   S3 = 's3',
-  CLOUDINARY = 'cloudinary'
+  CLOUDINARY = 'cloudinary',
 }
 
 export interface UploadResult {
@@ -38,7 +38,7 @@ export class ImageService {
 
   async uploadImage(
     file: Express.Multer.File,
-    options: UploadOptions
+    options: UploadOptions,
   ): Promise<UploadResult> {
     // Validate file
     this.validateFile(file, options);
@@ -55,27 +55,33 @@ export class ImageService {
     }
   }
 
-  private validateFile(file: Express.Multer.File, options: UploadOptions): void {
+  private validateFile(
+    file: Express.Multer.File,
+    options: UploadOptions,
+  ): void {
     if (!file) {
       throw new BadRequestException('No file provided');
     }
 
     if (options.maxSize && file.size > options.maxSize) {
       throw new BadRequestException(
-        `File size ${file.size} exceeds maximum allowed size ${options.maxSize}`
+        `File size ${file.size} exceeds maximum allowed size ${options.maxSize}`,
       );
     }
 
-    if (options.allowedMimeTypes && !options.allowedMimeTypes.includes(file.mimetype)) {
+    if (
+      options.allowedMimeTypes &&
+      !options.allowedMimeTypes.includes(file.mimetype)
+    ) {
       throw new BadRequestException(
-        `File type ${file.mimetype} is not allowed. Allowed types: ${options.allowedMimeTypes.join(', ')}`
+        `File type ${file.mimetype} is not allowed. Allowed types: ${options.allowedMimeTypes.join(', ')}`,
       );
     }
   }
 
   private async uploadToLocal(
     file: Express.Multer.File,
-    options: UploadOptions
+    options: UploadOptions,
   ): Promise<UploadResult> {
     const fileExtension = path.extname(file.originalname);
     const filename = `${uuidv4()}${fileExtension}`;
@@ -88,11 +94,14 @@ export class ImageService {
     }
 
     const filePath = path.join(uploadPath, filename);
-    
+
     // Write file to disk
     fs.writeFileSync(filePath, file.buffer);
 
-    const baseUrl = this.configService.get<string>('BASE_URL', 'http://localhost:3000/api/v1');
+    const baseUrl = this.configService.get<string>(
+      'BASE_URL',
+      'http://localhost:3000/api/v1',
+    );
     const url = `${baseUrl}/${folder}/${filename}`;
 
     return {
@@ -100,22 +109,24 @@ export class ImageService {
       filename,
       size: file.size,
       mimetype: file.mimetype,
-      location: StorageLocation.LOCAL
+      location: StorageLocation.LOCAL,
     };
   }
 
   private async uploadToS3(
     file: Express.Multer.File,
-    options: UploadOptions
+    options: UploadOptions,
   ): Promise<UploadResult> {
     // Import AWS SDK dynamically to avoid requiring it if not used
     try {
       const AWS = await import('aws-sdk');
-      
+
       const s3 = new AWS.S3({
         accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
-        secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY'),
-        region: this.configService.get<string>('AWS_REGION')
+        secretAccessKey: this.configService.get<string>(
+          'AWS_SECRET_ACCESS_KEY',
+        ),
+        region: this.configService.get<string>('AWS_REGION'),
       });
 
       const bucket = this.configService.get<string>('AWS_S3_BUCKET');
@@ -132,7 +143,7 @@ export class ImageService {
         Key: key,
         Body: file.buffer,
         ContentType: file.mimetype,
-        ACL: 'public-read'
+        ACL: 'public-read',
       };
 
       const result = await s3.upload(uploadParams).promise();
@@ -142,7 +153,7 @@ export class ImageService {
         filename,
         size: file.size,
         mimetype: file.mimetype,
-        location: StorageLocation.S3
+        location: StorageLocation.S3,
       };
     } catch (error) {
       throw new BadRequestException(`S3 upload failed: ${error.message}`);
@@ -151,32 +162,34 @@ export class ImageService {
 
   private async uploadToCloudinary(
     file: Express.Multer.File,
-    options: UploadOptions
+    options: UploadOptions,
   ): Promise<UploadResult> {
     try {
       const cloudinary = await import('cloudinary');
-      
+
       cloudinary.v2.config({
         cloud_name: this.configService.get<string>('CLOUDINARY_CLOUD_NAME'),
         api_key: this.configService.get<string>('CLOUDINARY_API_KEY'),
-        api_secret: this.configService.get<string>('CLOUDINARY_API_SECRET')
+        api_secret: this.configService.get<string>('CLOUDINARY_API_SECRET'),
       });
 
       const folder = options.folder || 'images';
       const filename = `${uuidv4()}`;
 
       const uploadResult = await new Promise((resolve, reject) => {
-        cloudinary.v2.uploader.upload_stream(
-          {
-            folder,
-            public_id: filename,
-            resource_type: 'auto'
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        ).end(file.buffer);
+        cloudinary.v2.uploader
+          .upload_stream(
+            {
+              folder,
+              public_id: filename,
+              resource_type: 'auto',
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            },
+          )
+          .end(file.buffer);
       });
 
       const result = uploadResult as any;
@@ -186,14 +199,20 @@ export class ImageService {
         filename: result.public_id,
         size: file.size,
         mimetype: file.mimetype,
-        location: StorageLocation.CLOUDINARY
+        location: StorageLocation.CLOUDINARY,
       };
     } catch (error) {
-      throw new BadRequestException(`Cloudinary upload failed: ${error.message}`);
+      throw new BadRequestException(
+        `Cloudinary upload failed: ${error.message}`,
+      );
     }
   }
 
-  async deleteImage(filename: string, location: StorageLocation, folder?: string): Promise<boolean> {
+  async deleteImage(
+    filename: string,
+    location: StorageLocation,
+    folder?: string,
+  ): Promise<boolean> {
     switch (location) {
       case StorageLocation.LOCAL:
         return this.deleteFromLocal(filename, folder);
@@ -206,11 +225,14 @@ export class ImageService {
     }
   }
 
-  private async deleteFromLocal(filename: string, folder?: string): Promise<boolean> {
+  private async deleteFromLocal(
+    filename: string,
+    folder?: string,
+  ): Promise<boolean> {
     try {
       const folderPath = folder || 'images';
       const filePath = path.join(this.uploadDir, folderPath, filename);
-      
+
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
         return true;
@@ -221,14 +243,19 @@ export class ImageService {
     }
   }
 
-  private async deleteFromS3(filename: string, folder?: string): Promise<boolean> {
+  private async deleteFromS3(
+    filename: string,
+    folder?: string,
+  ): Promise<boolean> {
     try {
       const AWS = await import('aws-sdk');
-      
+
       const s3 = new AWS.S3({
         accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
-        secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY'),
-        region: this.configService.get<string>('AWS_REGION')
+        secretAccessKey: this.configService.get<string>(
+          'AWS_SECRET_ACCESS_KEY',
+        ),
+        region: this.configService.get<string>('AWS_REGION'),
       });
 
       const bucket = this.configService.get<string>('AWS_S3_BUCKET');
@@ -248,11 +275,11 @@ export class ImageService {
   private async deleteFromCloudinary(publicId: string): Promise<boolean> {
     try {
       const cloudinary = await import('cloudinary');
-      
+
       cloudinary.v2.config({
         cloud_name: this.configService.get<string>('CLOUDINARY_CLOUD_NAME'),
         api_key: this.configService.get<string>('CLOUDINARY_API_KEY'),
-        api_secret: this.configService.get<string>('CLOUDINARY_API_SECRET')
+        api_secret: this.configService.get<string>('CLOUDINARY_API_SECRET'),
       });
 
       const result = await cloudinary.v2.uploader.destroy(publicId);
@@ -261,4 +288,4 @@ export class ImageService {
       return false;
     }
   }
-} 
+}

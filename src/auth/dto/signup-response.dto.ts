@@ -23,7 +23,7 @@ export class UserResponseDto {
 
 export class SignupResponseDto {
   access_token: string;
-  
+
   @Type(() => UserResponseDto)
   user: UserResponseDto;
-} 
+}

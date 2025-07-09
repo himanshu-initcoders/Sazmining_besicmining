@@ -10,7 +10,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ImageService, StorageLocation, UploadOptions } from './services/image.service';
+import {
+  ImageService,
+  StorageLocation,
+  UploadOptions,
+} from './services/image.service';
 import { UploadImageDto } from './dto/upload-image.dto';
 
 @Controller('upload')
@@ -58,13 +62,19 @@ export class UploadController {
     @Query('folder') folder?: string,
   ) {
     try {
-      const result = await this.imageService.deleteImage(filename, location, folder);
+      const result = await this.imageService.deleteImage(
+        filename,
+        location,
+        folder,
+      );
       return {
         success: result,
-        message: result ? 'Image deleted successfully' : 'Image not found or could not be deleted',
+        message: result
+          ? 'Image deleted successfully'
+          : 'Image not found or could not be deleted',
       };
     } catch (error) {
       throw new BadRequestException(error.message);
     }
   }
-} 
+}

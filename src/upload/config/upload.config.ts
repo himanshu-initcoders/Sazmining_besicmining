@@ -21,11 +21,7 @@ export const uploadConfig = {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'text/plain',
     ],
-    videos: [
-      'video/mp4',
-      'video/webm',
-      'video/ogg',
-    ],
+    videos: ['video/mp4', 'video/webm', 'video/ogg'],
   },
 
   // Default folders
@@ -42,4 +38,4 @@ export const uploadConfig = {
     uploadDir: 'uploads',
     serveStaticPath: '/uploads',
   },
-}; 
+};

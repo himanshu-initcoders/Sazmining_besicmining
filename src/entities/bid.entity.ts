@@ -1,4 +1,12 @@
-import { Entity, Column, ObjectIdColumn, CreateDateColumn, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ObjectIdColumn,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { IsNotEmpty, IsNumber } from 'class-validator';
 import { Auction } from './auction.entity';
 import { User } from './user.entity';
@@ -12,7 +20,7 @@ export class Bid {
   @IsNotEmpty()
   auctionId: string;
 
-  @ManyToOne(() => Auction, auction => auction.bids)
+  @ManyToOne(() => Auction, (auction) => auction.bids)
   @JoinColumn({ name: 'auctionId' })
   auction: Auction;
 
@@ -31,4 +39,4 @@ export class Bid {
 
   @CreateDateColumn()
   timestamp: Date;
-} 
+}

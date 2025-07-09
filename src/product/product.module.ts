@@ -19,4 +19,4 @@ import { UploadModule } from '../upload/upload.module';
   providers: [ProductService],
   exports: [ProductService],
 })
-export class ProductModule {} 
+export class ProductModule {}

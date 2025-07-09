@@ -1,11 +1,27 @@
-import { Entity, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Exclude, Expose } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsBoolean, IsInt, IsOptional } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  IsBoolean,
+  IsInt,
+  IsOptional,
+} from 'class-validator';
 import { Cart } from './cart.entity';
 
 export enum UserRole {
   USER = 'user',
-  ADMIN = 'admin'
+  ADMIN = 'admin',
 }
 
 @Entity('users')
@@ -21,7 +37,7 @@ export class User {
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.USER
+    default: UserRole.USER,
   })
   role: string;
 
@@ -48,7 +64,7 @@ export class User {
   @IsInt()
   profileCompletion: number;
 
-  @OneToOne(() => Cart, cart => cart.user, { cascade: true })
+  @OneToOne(() => Cart, (cart) => cart.user, { cascade: true })
   cart: Cart;
 
   @Column({ nullable: true })
@@ -80,4 +96,4 @@ export class User {
   get isProfileComplete(): boolean {
     return this.profileCompletion === 100;
   }
-} 
+}

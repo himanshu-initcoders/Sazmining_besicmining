@@ -25,7 +25,9 @@ export class PaginationService {
       finalQueryBuilder.andWhere(
         new Array(searchColumns.length)
           .fill('LOWER($1) LIKE LOWER(:search)')
-          .map((condition, index) => condition.replace('$1', searchColumns[index]))
+          .map((condition, index) =>
+            condition.replace('$1', searchColumns[index]),
+          )
           .join(' OR '),
         { search: `%${search}%` },
       );
@@ -56,4 +58,4 @@ export class PaginationService {
       },
     };
   }
-} 
+}

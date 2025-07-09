@@ -26,10 +26,7 @@ export class CartController {
   }
 
   @Post('items')
-  async addToCart(
-    @Request() req,
-    @Body() addToCartDto: AddToCartDto,
-  ) {
+  async addToCart(@Request() req, @Body() addToCartDto: AddToCartDto) {
     return this.cartService.addItemToCart(
       req.user.id,
       addToCartDto.productId,
@@ -62,4 +59,4 @@ export class CartController {
   async clearCart(@Request() req) {
     return this.cartService.clearCart(req.user.id);
   }
-} 
+}

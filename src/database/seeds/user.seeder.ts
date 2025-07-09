@@ -7,12 +7,12 @@ export class UserSeeder implements Seeder {
   async run(dataSource: DataSource): Promise<void> {
     console.log('👤 Starting UserSeeder...');
     const userRepository = dataSource.getRepository(User);
-    
+
     // Check if admin user already exists
     const existingAdmin = await userRepository.findOne({
-        where: { role: UserRole.ADMIN }
+      where: { role: UserRole.ADMIN },
     });
-    
+
     if (!existingAdmin) {
       console.log('🔨 Creating admin user...');
       const adminUser = userRepository.create({
@@ -30,4 +30,4 @@ export class UserSeeder implements Seeder {
       console.log('ℹ️ Admin user already exists, skipping...');
     }
   }
-} 
+}

@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { ImageService, StorageLocation, UploadOptions } from '../services/image.service';
+import {
+  ImageService,
+  StorageLocation,
+  UploadOptions,
+} from '../services/image.service';
 
 @Injectable()
 export class UploadUsageExample {
@@ -42,7 +46,10 @@ export class UploadUsageExample {
   }
 
   // Example 4: Simple usage with defaults
-  async uploadWithDefaults(file: Express.Multer.File, location: StorageLocation) {
+  async uploadWithDefaults(
+    file: Express.Multer.File,
+    location: StorageLocation,
+  ) {
     const options: UploadOptions = {
       location,
       // Uses default folder 'images'
@@ -54,7 +61,11 @@ export class UploadUsageExample {
   }
 
   // Example 5: Delete image
-  async deleteImage(filename: string, location: StorageLocation, folder?: string) {
+  async deleteImage(
+    filename: string,
+    location: StorageLocation,
+    folder?: string,
+  ) {
     return await this.imageService.deleteImage(filename, location, folder);
   }
 }
@@ -145,4 +156,4 @@ Response format:
   },
   "message": "Image uploaded successfully"
 }
-*/ 
+*/

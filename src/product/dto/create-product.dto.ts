@@ -1,6 +1,24 @@
-import { IsNotEmpty, IsString, IsNumber, IsOptional, IsBoolean, IsEnum, IsUrl, IsDate, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  IsEnum,
+  IsUrl,
+  IsDate,
+  Min,
+} from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { ProductType, CoolingType, ProductStatus, PublishStatus, AvailabilityStatus, AuctionType, StockType } from '../../entities/product.entity';
+import {
+  ProductType,
+  CoolingType,
+  ProductStatus,
+  PublishStatus,
+  AvailabilityStatus,
+  AuctionType,
+  StockType,
+} from '../../entities/product.entity';
 
 export class CreateProductDto {
   @IsOptional()
@@ -110,4 +128,4 @@ export class CreateProductDto {
   @IsOptional()
   @IsEnum(StockType)
   stockType?: StockType = StockType.LIMITED;
-} 
+}

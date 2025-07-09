@@ -21,10 +21,19 @@ const options: DataSourceOptions & SeederOptions = {
   username: process.env.DATABASE_USERNAME || 'postgres',
   password: process.env.DATABASE_PASSWORD || 'postgres',
   database: process.env.DATABASE_NAME || 'besicmining',
-  entities: [User, Product , Auction , Bid , Cart , CartItem , Contract , RefreshToken],
+  entities: [
+    User,
+    Product,
+    Auction,
+    Bid,
+    Cart,
+    CartItem,
+    Contract,
+    RefreshToken,
+  ],
   synchronize: process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV !== 'production',
-  migrations: [join(__dirname, '../database/migrations/*.{ts,js}')]
+  migrations: [join(__dirname, '../database/migrations/*.{ts,js}')],
 };
 
 export const databaseConfig: TypeOrmModuleOptions = options;

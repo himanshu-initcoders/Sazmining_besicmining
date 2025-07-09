@@ -17,11 +17,11 @@ export class TransformInterceptor<T>
     next: CallHandler,
   ): Observable<ApiResponse<T>> {
     return next.handle().pipe(
-      map(data => ({
+      map((data) => ({
         success: true,
         data,
         timestamp: new Date().toISOString(),
       })),
     );
   }
-} 
+}
