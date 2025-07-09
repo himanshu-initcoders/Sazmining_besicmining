@@ -1,15 +1,33 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Req, Res, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Req, Res, UnauthorizedException, ClassSerializerInterceptor, UseInterceptors } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { SignupDto } from './dto/signup.dto';
+import { SignupResponseDto } from './dto/signup-response.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AppException } from 'src/common/exceptions/app.exception';
 import { jwtConstants } from 'src/config/jwt.config';
 
 @Controller('auth')
+@UseInterceptors(ClassSerializerInterceptor)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('signup')
+  @HttpCode(HttpStatus.CREATED)
+  async signup(@Body() signupDto: SignupDto, @Res({ passthrough: true }) response: Response) {
+    const result = await this.authService.signup(signupDto, response);
+    
+    // Set refresh token as HTTP-only cookie
+    this.setRefreshTokenCookie(response, result.refresh_token);
+    
+    // Return only access token and user info in response body
+    return {
+      access_token: result.access_token,
+      user: result.user
+    };
+  }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)

@@ -1,12 +1,12 @@
-import { Entity, Column, ObjectIdColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ObjectIdColumn, CreateDateColumn, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { IsNotEmpty, IsNumber } from 'class-validator';
 import { Auction } from './auction.entity';
 import { User } from './user.entity';
 
 @Entity('bids')
 export class Bid {
-  @ObjectIdColumn()
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
   @IsNotEmpty()

@@ -26,8 +26,7 @@ export class JwtAuthMiddleware implements NestMiddleware {
     try {
       const decoded = this.jwtService.verify(token);
       const user = await this.userRepository.findOne({ 
-        where: { id: decoded.sub },
-        relations: [decoded.role]
+        where: { id: decoded.sub }
       });
 
       if (!user) {

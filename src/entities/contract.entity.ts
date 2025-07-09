@@ -1,10 +1,10 @@
-import { Entity, Column, ObjectIdColumn } from 'typeorm';
+import { Entity, Column, ObjectIdColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
 
 @Entity('contracts')
 export class Contract {
-  @ObjectIdColumn()
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
   @IsString()

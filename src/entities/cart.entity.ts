@@ -1,15 +1,20 @@
-import { Entity, Column, ObjectIdColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import { CartItem } from './cart-item.entity';
+import { User } from './user.entity';
 
 @Entity('carts')
 export class Cart {
-  @ObjectIdColumn()
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
-  userId: string;
+  userId: number;
 
-  @OneToMany(() => CartItem, cartItem => cartItem.cartId)
+  @OneToOne(() => User, user => user.cart)
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
+  @OneToMany(() => CartItem, cartItem => cartItem.cart)
   items: CartItem[];
 
   @CreateDateColumn()

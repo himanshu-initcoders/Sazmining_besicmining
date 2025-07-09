@@ -1,4 +1,4 @@
-import { Entity, Column, ObjectIdColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ObjectIdColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { IsNotEmpty, IsNumber } from 'class-validator';
 import { Product } from './product.entity';
 import { User } from './user.entity';
@@ -13,8 +13,8 @@ export enum AuctionStatus {
 
 @Entity('auctions')
 export class Auction {
-  @ObjectIdColumn()
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
   @IsNotEmpty()

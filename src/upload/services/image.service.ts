@@ -92,7 +92,7 @@ export class ImageService {
     // Write file to disk
     fs.writeFileSync(filePath, file.buffer);
 
-    const baseUrl = this.configService.get<string>('BASE_URL', 'http://localhost:3000');
+    const baseUrl = this.configService.get<string>('BASE_URL', 'http://localhost:3000/api/v1');
     const url = `${baseUrl}/${folder}/${filename}`;
 
     return {
@@ -119,6 +119,9 @@ export class ImageService {
       });
 
       const bucket = this.configService.get<string>('AWS_S3_BUCKET');
+      if (!bucket) {
+        throw new BadRequestException('AWS S3 bucket is not configured');
+      }
       const fileExtension = path.extname(file.originalname);
       const filename = `${uuidv4()}${fileExtension}`;
       const folder = options.folder || 'images';
@@ -229,6 +232,9 @@ export class ImageService {
       });
 
       const bucket = this.configService.get<string>('AWS_S3_BUCKET');
+      if (!bucket) {
+        throw new BadRequestException('AWS S3 bucket is not configured');
+      }
       const folderPath = folder || 'images';
       const key = `${folderPath}/${filename}`;
 

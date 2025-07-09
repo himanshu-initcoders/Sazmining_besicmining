@@ -1,13 +1,16 @@
-import { Injectable, UnauthorizedException, NotFoundException, BadRequestException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from '../entities/user.entity';
-import { RefreshToken } from './entities/refresh-token.entity';
+import { RefreshToken } from '../entities/refresh-token.entity';
 import * as bcrypt from 'bcrypt';
 import { jwtConstants } from '../config/jwt.config';
 import { AppException } from 'src/common/exceptions/app.exception';
+import { ErrorCodes } from 'src/common/exceptions/error-codes';
 import { Response } from 'express';
+import { SignupDto } from './dto/signup.dto';
+import { CartService } from '../cart/cart.service';
 
 @Injectable()
 export class AuthService {
@@ -17,10 +20,93 @@ export class AuthService {
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
     private jwtService: JwtService,
+    private cartService: CartService,
   ) {}
 
   private clearAuthCookies(response: Response) {
     response.clearCookie('refresh_token');
+  }
+
+  async signup(signupDto: SignupDto, response: Response) {
+    // Check if email already exists
+    const existingEmail = await this.usersRepository.findOne({ 
+      where: { email: signupDto.email } 
+    });
+    
+    if (existingEmail) {
+      throw new AppException(
+        'Email already in use', 
+        ErrorCodes.EMAIL_ALREADY_EXISTS, 
+        HttpStatus.CONFLICT,
+        { email: signupDto.email }
+      );
+    }
+
+    // Check if username already exists
+    const existingUsername = await this.usersRepository.findOne({ 
+      where: { username: signupDto.username } 
+    });
+    
+    if (existingUsername) {
+      throw new AppException(
+        'Username already in use', 
+        'USERNAME_ALREADY_EXISTS', 
+        HttpStatus.CONFLICT,
+        { username: signupDto.username }
+      );
+    }
+
+    // Validate terms agreement
+    if (!signupDto.termsAgreed) {
+      throw new AppException(
+        'Terms and conditions must be accepted', 
+        'TERMS_NOT_AGREED', 
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(signupDto.password, 10);
+    
+    // Create new user with USER role
+    const newUser = this.usersRepository.create({
+      ...signupDto,
+      password: hashedPassword,
+      role: UserRole.USER,
+      profileCompletion: this.calculateProfileCompletion(signupDto),
+    });
+    
+    // Save the user
+    const savedUser = await this.usersRepository.save(newUser);
+    
+    // Create a cart for the user
+    await this.cartService.createCartForUser(savedUser.id);
+    
+    // Generate tokens
+    const tokens = await this.getTokens(savedUser.id, savedUser.email);
+    
+    // Store refresh token
+    await this.storeRefreshToken(savedUser.id, tokens.refreshToken);
+    
+    // Remove password from response
+    const { password, ...userWithoutPassword } = savedUser;
+    
+    return {
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
+      user: userWithoutPassword,
+    };
+  }
+
+  private calculateProfileCompletion(user: Partial<User>): number {
+    const fields = [
+      'email', 'username', 'name', 'phone', 'profilePhoto', 'termsAgreed'
+    ];
+    
+    const completedFields = fields.filter(field => !!user[field]).length;
+    const completionPercentage = Math.floor((completedFields / fields.length) * 100);
+    
+    return completionPercentage;
   }
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -37,7 +123,12 @@ export class AuthService {
     const user = await this.validateUser(email, password);
     if (!user) {
       this.clearAuthCookies(response);
-      throw new AppException('Invalid credentials', 'INVALID_CREDENTIALS', HttpStatus.UNAUTHORIZED);
+      throw new AppException(
+        'Invalid credentials', 
+        'INVALID_CREDENTIALS', 
+        HttpStatus.UNAUTHORIZED,
+        { email }
+      );
     }
 
     const tokens = await this.getTokens(user.id, user.email);
@@ -66,7 +157,12 @@ export class AuthService {
       // Check if token exists and is not revoked
       if (!storedToken || storedToken.isRevoked) {
         this.clearAuthCookies(response);
-        throw new AppException('Invalid refresh token', 'INVALID_REFRESH_TOKEN', HttpStatus.UNAUTHORIZED);
+        throw new AppException(
+          'Invalid refresh token', 
+          'INVALID_REFRESH_TOKEN', 
+          HttpStatus.UNAUTHORIZED,
+          { userId: payload.sub }
+        );
       }
 
       // Check if token is expired
@@ -74,7 +170,15 @@ export class AuthService {
         // Revoke the token and clear cookies
         await this.revokeRefreshToken(storedToken.id);
         this.clearAuthCookies(response);
-        throw new AppException('Refresh token expired', 'REFRESH_TOKEN_EXPIRED', HttpStatus.UNAUTHORIZED);
+        throw new AppException(
+          'Refresh token expired', 
+          'REFRESH_TOKEN_EXPIRED', 
+          HttpStatus.UNAUTHORIZED,
+          { 
+            userId: storedToken.userId,
+            expiredAt: storedToken.expiresAt 
+          }
+        );
       }
 
       // Generate new tokens
@@ -103,7 +207,12 @@ export class AuthService {
 
     if (!token) {
       this.clearAuthCookies(response);
-      throw new AppException('Token not found', 'TOKEN_NOT_FOUND', HttpStatus.NOT_FOUND);
+      throw new AppException(
+        'Token not found', 
+        'TOKEN_NOT_FOUND', 
+        HttpStatus.NOT_FOUND,
+        { userId }
+      );
     }
 
     await this.revokeRefreshToken(token.id);
@@ -157,14 +266,24 @@ export class AuthService {
     await this.refreshTokenRepository.save(newRefreshToken);
   }
 
-  private async getTokens(userId: number, email: string) {
+  private   async getTokens(userId: number, email: string) {
     // Fetch user to get role
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new AppException('User not found', 'USER_NOT_FOUND', HttpStatus.UNAUTHORIZED);
+      throw new AppException(
+        'User not found', 
+        'USER_NOT_FOUND', 
+        HttpStatus.UNAUTHORIZED,
+        { userId }
+      );
     }
     if(user.isActive === false){
-      throw new AppException('User is not active', 'USER_NOT_ACTIVE', HttpStatus.UNAUTHORIZED);
+      throw new AppException(
+        'User is not active', 
+        'USER_NOT_ACTIVE', 
+        HttpStatus.UNAUTHORIZED,
+        { userId }
+      );
     }
     
     let payload: any = { email, sub: userId, role: user.role };

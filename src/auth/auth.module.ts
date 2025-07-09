@@ -7,11 +7,13 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { User } from '../entities/user.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { RefreshToken } from './entities/refresh-token.entity';
+import { RefreshToken } from '../entities/refresh-token.entity';
 import { jwtConstants } from '../config/jwt.config';
+import { CartModule } from '../cart/cart.module';
 
 @Module({
   imports: [
+    ConfigModule,
     TypeOrmModule.forFeature([User, RefreshToken]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
@@ -24,6 +26,7 @@ import { jwtConstants } from '../config/jwt.config';
       }),
       inject: [ConfigService],
     }),
+    CartModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

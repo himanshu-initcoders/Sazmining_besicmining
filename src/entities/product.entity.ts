@@ -1,5 +1,5 @@
-import { Entity, Column, ObjectIdColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { IsNotEmpty, IsString, IsBoolean, IsNumber, IsOptional, IsDate } from 'class-validator';
+import { Entity, Column, CreateDateColumn, UpdateDateColumn, PrimaryGeneratedColumn } from 'typeorm';
+import { IsNotEmpty, IsString, IsBoolean, IsNumber, IsOptional, IsDate, IsUrl } from 'class-validator';
 
 export enum ProductType {
   MARKETPLACE = 'marketplace',
@@ -42,8 +42,8 @@ export enum StockType {
 
 @Entity('products')
 export class Product {
-  @ObjectIdColumn()
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ nullable: true })
   @IsOptional()
@@ -63,6 +63,12 @@ export class Product {
   @Column()
   @IsString()
   description: string;
+
+  @Column({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @IsUrl()
+  imageUrl: string;
 
   @Column({ default: true })
   @IsBoolean()
@@ -134,12 +140,12 @@ export class Product {
   })
   auctionType: string;
 
-  @Column({ nullable: true, type: 'datetime' })
+  @Column({ nullable: true, type: 'timestamp' })
   @IsOptional()
   @IsDate()
   auctionStartDate: Date;
 
-  @Column({ nullable: true, type: 'datetime' })
+  @Column({ nullable: true, type: 'timestamp' })
   @IsOptional()
   @IsDate()
   auctionEndDate: Date;
