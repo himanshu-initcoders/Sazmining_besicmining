@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuctionService } from './auction.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -17,8 +18,10 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../entities/user.entity';
 import { CreateAuctionDto } from './dto/create-auction.dto';
 import { PlaceBidDto } from './dto/place-bid.dto';
+import { TransformInterceptor } from '../common/interceptors/transform.interceptor';
 
 @Controller('auctions')
+@UseInterceptors(TransformInterceptor)
 export class AuctionController {
   constructor(private readonly auctionService: AuctionService) {}
 

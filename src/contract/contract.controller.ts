@@ -7,6 +7,7 @@ import {
   UseGuards,
   Request,
   ParseIntPipe,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ContractService } from './contract.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';

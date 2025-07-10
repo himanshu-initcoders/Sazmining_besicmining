@@ -4,6 +4,8 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { IsNotEmpty, IsString, IsNumber, IsBoolean } from 'class-validator';
 import { User } from './user.entity';
@@ -57,4 +59,10 @@ export class Contract {
   @ManyToOne(() => Product)
   @JoinColumn({ name: 'productId' })
   product: Product;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

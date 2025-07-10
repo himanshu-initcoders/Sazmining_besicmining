@@ -6,5 +6,14 @@ export interface ApiResponse<T> {
     message: string;
     details?: any;
   };
+  meta?: {
+    pagination?: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+    [key: string]: any;
+  };
   timestamp: string;
 }

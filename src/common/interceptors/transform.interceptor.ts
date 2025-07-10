@@ -17,11 +17,23 @@ export class TransformInterceptor<T>
     next: CallHandler,
   ): Observable<ApiResponse<T>> {
     return next.handle().pipe(
-      map((data) => ({
-        success: true,
-        data,
-        timestamp: new Date().toISOString(),
-      })),
+      map((data) => {
+        // Check if data has pagination info
+        const response: ApiResponse<T> = {
+          success: true,
+          timestamp: new Date().toISOString(),
+        };
+        
+        // Handle paginated responses
+        if (data && typeof data === 'object' && 'data' in data && 'meta' in data) {
+          response.data = data.data;
+          response.meta = data.meta;
+        } else {
+          response.data = data;
+        }
+        
+        return response;
+      }),
     );
   }
 }

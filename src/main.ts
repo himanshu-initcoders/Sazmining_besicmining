@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import * as cookieParser from 'cookie-parser';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -25,6 +26,9 @@ async function bootstrap() {
 
   // Apply global exception filter
   app.useGlobalFilters(new GlobalExceptionFilter());
+  
+  // Apply global transform interceptor for consistent response format
+  app.useGlobalInterceptors(new TransformInterceptor());
 
   // Set global prefix
   app.setGlobalPrefix('api/v1');

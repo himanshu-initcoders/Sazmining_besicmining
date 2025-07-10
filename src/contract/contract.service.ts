@@ -150,6 +150,7 @@ export class ContractService {
   async findOne(id: number): Promise<Contract> {
     const contract = await this.contractRepository.findOne({
       where: { id },
+      relations: ['product', 'buyer'],
     });
 
     if (!contract) {
@@ -172,6 +173,7 @@ export class ContractService {
   async findByContractId(contractId: string): Promise<Contract> {
     const contract = await this.contractRepository.findOne({
       where: { contractId },
+      relations: ['product', 'buyer'],
     });
 
     if (!contract) {
@@ -191,7 +193,9 @@ export class ContractService {
    * @returns List of contracts
    */
   async findAll(): Promise<Contract[]> {
-    return this.contractRepository.find();
+    return this.contractRepository.find({
+      relations: ['product', 'buyer'],
+    });
   }
 
   /**

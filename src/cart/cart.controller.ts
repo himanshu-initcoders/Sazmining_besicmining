@@ -9,6 +9,7 @@ import {
   Request,
   ParseIntPipe,
   Patch,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
