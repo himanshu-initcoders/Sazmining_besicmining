@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitialMigration1752059633004 implements MigrationInterface {
-    name = 'InitialMigration1752059633004'
+export class InitialMigration1752067013597 implements MigrationInterface {
+    name = 'InitialMigration1752067013597'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TYPE "public"."products_type_enum" AS ENUM('marketplace', 'retail')`);
@@ -19,7 +19,7 @@ export class InitialMigration1752059633004 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "bids" ("id" SERIAL NOT NULL, "auctionId" integer NOT NULL, "bidUserId" integer NOT NULL, "bidPrice" double precision NOT NULL, "timestamp" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_7950d066d322aab3a488ac39fe5" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TYPE "public"."auctions_auctionstatus_enum" AS ENUM('Pending', 'Active', 'Completed', 'Cancelled')`);
         await queryRunner.query(`CREATE TABLE "auctions" ("id" SERIAL NOT NULL, "productId" integer NOT NULL, "bidderId" integer, "publisherId" integer NOT NULL, "productPrice" double precision NOT NULL, "auctionStatus" "public"."auctions_auctionstatus_enum" NOT NULL DEFAULT 'Pending', "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_87d2b34d4829f0519a5c5570368" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TABLE "contracts" ("id" SERIAL NOT NULL, "contractId" character varying NOT NULL, "location" character varying NOT NULL, "depositPrice" double precision NOT NULL, "setupPrice" double precision NOT NULL, "hostRate" double precision NOT NULL, "salesTaxPercent" double precision NOT NULL, CONSTRAINT "PK_2c7b8f3a7b1acdd49497d83d0fb" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "contracts" ("id" SERIAL NOT NULL, "contractId" character varying NOT NULL, "location" character varying NOT NULL, "depositPrice" double precision NOT NULL, "setupPrice" double precision NOT NULL, "hostRate" double precision NOT NULL, "salesTaxPercent" double precision NOT NULL, "autoMaintenance" boolean NOT NULL DEFAULT false, "buyerId" integer NOT NULL, "productId" integer NOT NULL, CONSTRAINT "PK_2c7b8f3a7b1acdd49497d83d0fb" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "refresh_tokens" ("id" SERIAL NOT NULL, "token" character varying NOT NULL, "expiresAt" TIMESTAMP NOT NULL, "isRevoked" boolean NOT NULL DEFAULT false, "userId" integer NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_7d8bee0204106019488c4c50ffa" PRIMARY KEY ("id"))`);
         await queryRunner.query(`ALTER TABLE "products" ADD CONSTRAINT "FK_99d90c2a483d79f3b627fb1d5e9" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "cart_items" ADD CONSTRAINT "FK_edd714311619a5ad09525045838" FOREIGN KEY ("cartId") REFERENCES "carts"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
@@ -30,11 +30,15 @@ export class InitialMigration1752059633004 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "auctions" ADD CONSTRAINT "FK_1e69bf3176e83fc48ac6ffc6f93" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "auctions" ADD CONSTRAINT "FK_24e057f5ab38b811aed92c94792" FOREIGN KEY ("bidderId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "auctions" ADD CONSTRAINT "FK_0f1ba2ad1d1dde2e98d45405db3" FOREIGN KEY ("publisherId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "contracts" ADD CONSTRAINT "FK_515a0faee50429b550a7c970c97" FOREIGN KEY ("buyerId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "contracts" ADD CONSTRAINT "FK_a2251d4d8e904b5ad99edb65b06" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "refresh_tokens" ADD CONSTRAINT "FK_610102b60fea1455310ccd299de" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE "refresh_tokens" DROP CONSTRAINT "FK_610102b60fea1455310ccd299de"`);
+        await queryRunner.query(`ALTER TABLE "contracts" DROP CONSTRAINT "FK_a2251d4d8e904b5ad99edb65b06"`);
+        await queryRunner.query(`ALTER TABLE "contracts" DROP CONSTRAINT "FK_515a0faee50429b550a7c970c97"`);
         await queryRunner.query(`ALTER TABLE "auctions" DROP CONSTRAINT "FK_0f1ba2ad1d1dde2e98d45405db3"`);
         await queryRunner.query(`ALTER TABLE "auctions" DROP CONSTRAINT "FK_24e057f5ab38b811aed92c94792"`);
         await queryRunner.query(`ALTER TABLE "auctions" DROP CONSTRAINT "FK_1e69bf3176e83fc48ac6ffc6f93"`);

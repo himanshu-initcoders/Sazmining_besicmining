@@ -20,6 +20,8 @@ import { UploadModule } from './upload/upload.module';
 import { UserModule } from './user/user.module';
 import { CartModule } from './cart/cart.module';
 import { ProductModule } from './product/product.module';
+import { AuctionModule } from './auction/auction.module';
+import { ContractModule } from './contract/contract.module';
 import { User } from './entities/user.entity';
 import { Product } from './entities/product.entity';
 import { Contract } from './entities/contract.entity';
@@ -58,6 +60,8 @@ import { APP_FILTER } from '@nestjs/core';
     UserModule,
     CartModule,
     ProductModule,
+    AuctionModule,
+    ContractModule,
   ],
   controllers: [AppController],
   providers: [
@@ -85,12 +89,16 @@ export class AppModule implements NestModule {
         { path: 'auth/refresh', method: RequestMethod.POST },
         { path: 'products/public', method: RequestMethod.GET },
         { path: 'products/public/(.*)', method: RequestMethod.GET },
+        { path: 'auctions/public', method: RequestMethod.GET },
+        { path: 'auctions/public/(.*)', method: RequestMethod.GET },
       )
       .forRoutes(
         { path: 'users', method: RequestMethod.ALL },
         { path: 'cart', method: RequestMethod.ALL },
         { path: 'upload', method: RequestMethod.ALL },
         { path: 'products', method: RequestMethod.ALL },
+        { path: 'auctions', method: RequestMethod.ALL },
+        { path: 'contracts', method: RequestMethod.ALL },
       );
   }
 }

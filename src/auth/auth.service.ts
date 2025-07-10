@@ -36,7 +36,7 @@ export class AuthService {
     if (existingEmail) {
       throw new AppException(
         'Email already in use',
-        ErrorCodes.EMAIL_ALREADY_EXISTS,
+        ErrorCodes.USER_ALREADY_EXISTS,
         HttpStatus.CONFLICT,
         { email: signupDto.email },
       );

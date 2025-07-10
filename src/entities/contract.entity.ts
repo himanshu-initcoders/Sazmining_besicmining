@@ -1,10 +1,13 @@
 import {
   Entity,
   Column,
-  ObjectIdColumn,
   PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
-import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsBoolean } from 'class-validator';
+import { User } from './user.entity';
+import { Product } from './product.entity';
 
 @Entity('contracts')
 export class Contract {
@@ -36,4 +39,22 @@ export class Contract {
   @Column({ type: 'float' })
   @IsNumber()
   salesTaxPercent: number;
+  
+  @Column({ default: false })
+  @IsBoolean()
+  autoMaintenance: boolean;
+  
+  @Column()
+  buyerId: string;
+  
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'buyerId' })
+  buyer: User;
+  
+  @Column()
+  productId: string;
+  
+  @ManyToOne(() => Product)
+  @JoinColumn({ name: 'productId' })
+  product: Product;
 }

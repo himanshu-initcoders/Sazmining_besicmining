@@ -708,6 +708,344 @@
       ]
     },
     {
+      "name": "Auctions",
+      "description": "Auction management endpoints",
+      "item": [
+        {
+          "name": "Public - Get Active Auctions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auctions/public",
+              "host": ["{{baseUrl}}"],
+              "path": ["auctions", "public"]
+            },
+            "description": "Get all active auctions (public endpoint)"
+          },
+          "response": []
+        },
+        {
+          "name": "Public - Get Auction by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auctions/public/{{auctionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["auctions", "public", "{{auctionId}}"]
+            },
+            "description": "Get auction details by ID (public endpoint)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Auction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"productPrice\": 5000.00,\n  \"auctionStatus\": \"Active\",\n  \"contractId\": \"optional-contract-id-for-reselling\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auctions",
+              "host": ["{{baseUrl}}"],
+              "path": ["auctions"]
+            },
+            "description": "Create a new auction for a product"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Auctions (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auctions?status=Active",
+              "host": ["{{baseUrl}}"],
+              "path": ["auctions"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Active"
+                }
+              ]
+            },
+            "description": "Get all auctions with optional status filter (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Auction by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auctions/{{auctionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["auctions", "{{auctionId}}"]
+            },
+            "description": "Get auction details by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Auctions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auctions/my?status=Active",
+              "host": ["{{baseUrl}}"],
+              "path": ["auctions", "my"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Active"
+                }
+              ]
+            },
+            "description": "Get auctions created by current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Bids",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auctions/my/bids",
+              "host": ["{{baseUrl}}"],
+              "path": ["auctions", "my", "bids"]
+            },
+            "description": "Get auctions the current user has bid on"
+          },
+          "response": []
+        },
+        {
+          "name": "Place Bid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"auctionId\": 1,\n  \"bidPrice\": 5500.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auctions/bid",
+              "host": ["{{baseUrl}}"],
+              "path": ["auctions", "bid"]
+            },
+            "description": "Place a bid on an auction"
+          },
+          "response": []
+        },
+        {
+          "name": "End Auction",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auctions/{{auctionId}}/end",
+              "host": ["{{baseUrl}}"],
+              "path": ["auctions", "{{auctionId}}", "end"]
+            },
+            "description": "End an auction (seller only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Auction",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auctions/{{auctionId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["auctions", "{{auctionId}}", "cancel"]
+            },
+            "description": "Cancel an auction (seller only, if no bids)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Contracts",
+      "description": "Contract management endpoints",
+      "item": [
+        {
+          "name": "Create Contract (Buy Now)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"location\": \"New York, NY\",\n  \"depositPrice\": 1000.00,\n  \"setupPrice\": 500.00,\n  \"hostRate\": 0.05,\n  \"salesTaxPercent\": 0.08,\n  \"autoMaintenance\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contracts",
+              "host": ["{{baseUrl}}"],
+              "path": ["contracts"]
+            },
+            "description": "Create a contract for direct purchase (Buy Now)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Contracts (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contracts",
+              "host": ["{{baseUrl}}"],
+              "path": ["contracts"]
+            },
+            "description": "Get all contracts (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Contracts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contracts/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["contracts", "my"]
+            },
+            "description": "Get contracts for the current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Contract by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contracts/{{contractId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["contracts", "{{contractId}}"]
+            },
+            "description": "Get contract details by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Contract by Contract ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contracts/by-contract-id/{{contractStringId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["contracts", "by-contract-id", "{{contractStringId}}"]
+            },
+            "description": "Get contract details by contract ID string"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Cart",
       "description": "Shopping cart management endpoints",
       "item": [
@@ -958,6 +1296,21 @@
     {
       "key": "productId",
       "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "auctionId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "contractId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "contractStringId",
+      "value": "unique-contract-id-string",
       "type": "string"
     },
     {
