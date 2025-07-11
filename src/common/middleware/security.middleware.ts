@@ -15,15 +15,15 @@ export class SecurityMiddleware implements NestMiddleware {
     res.setHeader('Content-Security-Policy', "default-src 'self'");
 
     // CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader(
-      'Access-Control-Allow-Methods',
-      'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-    );
-    res.setHeader(
-      'Access-Control-Allow-Headers',
-      'Content-Type, Authorization',
-    );
+    // res.setHeader('Access-Control-Allow-Origin', '*');
+    // res.setHeader(
+    //   'Access-Control-Allow-Methods',
+    //   'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+    // );
+    // res.setHeader(
+    //   'Access-Control-Allow-Headers',
+    //   'Content-Type, Authorization',
+    // );
 
     // Handle preflight requests
     if (req.method === 'OPTIONS') {

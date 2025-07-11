@@ -3,8 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
 import { Auction, AuctionStatus } from '../entities/auction.entity';
 import { Bid } from '../entities/bid.entity';
-import { Product, AuctionType } from '../entities/product.entity';
+import { Product } from '../entities/product.entity';
 import { User } from '../entities/user.entity';
+import { Contract } from '../entities/contract.entity';
 import { AppException } from '../common/exceptions/app.exception';
 import { ErrorCodes } from '../common/exceptions/error-codes';
 import { CreateAuctionDto } from './dto/create-auction.dto';
@@ -21,6 +22,8 @@ export class AuctionService {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Contract)
+    private readonly contractRepository: Repository<Contract>,
   ) {}
 
   /**
@@ -58,33 +61,72 @@ export class AuctionService {
       );
     }
 
+    // Validate auction dates
+    const now = new Date();
+    if (createAuctionDto.startDate < now) {
+      throw new AppException(
+        'Auction start date cannot be in the past',
+        ErrorCodes.INVALID_AUCTION_DATES,
+        HttpStatus.BAD_REQUEST,
+        { startDate: createAuctionDto.startDate, currentDate: now },
+      );
+    }
+
+    if (createAuctionDto.endDate <= createAuctionDto.startDate) {
+      throw new AppException(
+        'Auction end date must be after start date',
+        ErrorCodes.INVALID_AUCTION_DATES,
+        HttpStatus.BAD_REQUEST,
+        { startDate: createAuctionDto.startDate, endDate: createAuctionDto.endDate },
+      );
+    }
+
     // Check if this is a reselling scenario with a valid contract
     let isReselling = false;
     if (createAuctionDto.contractId) {
       // Validate the contract exists and belongs to this user
       const contract = await this.getContractByIdAndVerifyOwner(
-        createAuctionDto.contractId, 
-        userId.toString()
+        createAuctionDto.contractId,
+        userId,
       );
-      
+
       // Verify the contract is for this product
-      if (contract.productId !== createAuctionDto.productId.toString()) {
+      // Robust comparison handling both string and number types
+      const contractProductId = Number(contract.productId);
+      const dtoProductId = Number(createAuctionDto.productId);
+
+      if (isNaN(contractProductId) || isNaN(dtoProductId)) {
+        throw new AppException(
+          'Invalid product ID format',
+          ErrorCodes.INVALID_PARAMETER,
+          HttpStatus.BAD_REQUEST,
+          {
+            contractId: createAuctionDto.contractId,
+            contractProductId: contract.productId,
+            specifiedProductId: createAuctionDto.productId,
+          },
+        );
+      }
+
+      if (contractProductId !== dtoProductId) {
         throw new AppException(
           'Contract does not match the specified product',
           ErrorCodes.INVALID_CONTRACT_PRODUCT,
           HttpStatus.BAD_REQUEST,
-          { 
-            contractId: createAuctionDto.contractId, 
-            contractProductId: contract.productId,
-            specifiedProductId: createAuctionDto.productId 
+          {
+            contractId: createAuctionDto.contractId,
+            contractProductId: contractProductId,
+            specifiedProductId: dtoProductId,
+            originalContractProductId: contract.productId,
+            originalSpecifiedProductId: createAuctionDto.productId,
           },
         );
       }
-      
+
       isReselling = true;
     } else {
       // Not reselling, so check if product belongs to the user
-      if (product.userId !== userId.toString()) {
+      if (product.userId !== userId) {
         throw new AppException(
           'You do not have permission to auction this product',
           ErrorCodes.INSUFFICIENT_PERMISSIONS,
@@ -96,7 +138,10 @@ export class AuctionService {
 
     // Check if product is already in auction
     const existingAuction = await this.auctionRepository.findOne({
-      where: { productId: createAuctionDto.productId.toString(), auctionStatus: AuctionStatus.ACTIVE },
+      where: {
+        productId: createAuctionDto.productId,
+        auctionStatus: AuctionStatus.ACTIVE,
+      },
     });
 
     if (existingAuction) {
@@ -108,42 +153,20 @@ export class AuctionService {
       );
     }
 
-    // If not reselling, verify other product settings
-    if (!isReselling) {
-      // Verify product is set to auction type
-      if (product.auctionType !== AuctionType.BID) {
-        throw new AppException(
-          'Product is not set for auction',
-          ErrorCodes.PRODUCT_NOT_AUCTION_TYPE,
-          HttpStatus.BAD_REQUEST,
-          { productId: createAuctionDto.productId, auctionType: product.auctionType },
-        );
-      }
-
-      // Verify auction dates are set
-      if (!product.auctionStartDate || !product.auctionEndDate) {
-        throw new AppException(
-          'Product auction dates are not set',
-          ErrorCodes.INVALID_AUCTION_DATES,
-          HttpStatus.BAD_REQUEST,
-          { productId: createAuctionDto.productId },
-        );
-      }
-    }
-
     // Create auction
     const auction = new Auction();
-    auction.productId = createAuctionDto.productId.toString();
-    auction.publisherId = userId.toString();
-    auction.productPrice = createAuctionDto.productPrice;
-    auction.auctionStatus = createAuctionDto.auctionStatus || AuctionStatus.ACTIVE;
+    auction.productId = createAuctionDto.productId;
+    auction.publisherId = userId;
+    auction.startingPrice = createAuctionDto.startingPrice;
+    auction.startDate = createAuctionDto.startDate;
+    auction.endDate = createAuctionDto.endDate;
+    auction.auctionStatus =
+      createAuctionDto.auctionStatus || AuctionStatus.ACTIVE;
 
     // Save auction
     const savedAuction = await this.auctionRepository.save(auction);
 
-    // Update product to reflect it's in auction
-    product.auctionType = AuctionType.BID;
-    await this.productRepository.save(product);
+    // Note: Product entity no longer tracks auction type - this is handled by separate Auction entities
 
     return savedAuction;
   }
@@ -191,50 +214,36 @@ export class AuctionService {
       );
     }
 
-    // Get the product associated with the auction
-    const product = await this.productRepository.findOne({
-      where: { id: parseInt(auction.productId) },
-    });
-
-    if (!product) {
-      throw new AppException(
-        'Product not found',
-        ErrorCodes.PRODUCT_NOT_FOUND,
-        HttpStatus.NOT_FOUND,
-        { productId: auction.productId },
-      );
-    }
-
-    // Check if auction period is valid
+    // Check if auction period is valid (using auction dates, not product dates)
     const now = new Date();
-    if (now < product.auctionStartDate) {
+    if (now < auction.startDate) {
       throw new AppException(
         'Auction has not started yet',
         ErrorCodes.AUCTION_NOT_STARTED,
         HttpStatus.BAD_REQUEST,
-        { 
-          auctionId: placeBidDto.auctionId, 
-          startDate: product.auctionStartDate,
-          currentDate: now 
+        {
+          auctionId: placeBidDto.auctionId,
+          startDate: auction.startDate,
+          currentDate: now,
         },
       );
     }
 
-    if (now > product.auctionEndDate) {
+    if (now > auction.endDate) {
       throw new AppException(
         'Auction has already ended',
         ErrorCodes.AUCTION_ENDED,
         HttpStatus.BAD_REQUEST,
-        { 
-          auctionId: placeBidDto.auctionId, 
-          endDate: product.auctionEndDate,
-          currentDate: now 
+        {
+          auctionId: placeBidDto.auctionId,
+          endDate: auction.endDate,
+          currentDate: now,
         },
       );
     }
 
     // Check if user is the owner of the auction/product
-    if (auction.publisherId === userId.toString()) {
+    if (auction.publisherId === userId) {
       throw new AppException(
         'You cannot bid on your own auction',
         ErrorCodes.CANNOT_BID_OWN_AUCTION,
@@ -245,39 +254,39 @@ export class AuctionService {
 
     // Find highest bid
     const highestBid = await this.bidRepository.findOne({
-      where: { auctionId: placeBidDto.auctionId.toString() },
+      where: { auctionId: placeBidDto.auctionId },
       order: { bidPrice: 'DESC' },
     });
 
     // Check if bid is higher than the highest bid or starting price
-    const minRequiredBid = highestBid 
+    const minRequiredBid = highestBid
       ? highestBid.bidPrice * 1.01 // At least 1% higher than the highest bid
-      : auction.productPrice;
+      : auction.startingPrice;
 
     if (placeBidDto.bidPrice < minRequiredBid) {
       throw new AppException(
         `Bid must be at least ${minRequiredBid.toFixed(2)}`,
         ErrorCodes.BID_TOO_LOW,
         HttpStatus.BAD_REQUEST,
-        { 
-          auctionId: placeBidDto.auctionId, 
+        {
+          auctionId: placeBidDto.auctionId,
           bidPrice: placeBidDto.bidPrice,
-          minRequiredBid: minRequiredBid 
+          minRequiredBid: minRequiredBid,
         },
       );
     }
 
     // Create bid
     const bid = new Bid();
-    bid.auctionId = placeBidDto.auctionId.toString();
-    bid.bidUserId = userId.toString();
+    bid.auctionId = placeBidDto.auctionId;
+    bid.bidUserId = userId;
     bid.bidPrice = placeBidDto.bidPrice;
 
     // Save bid
     const savedBid = await this.bidRepository.save(bid);
 
     // Update auction with highest bidder
-    auction.bidderId = userId.toString();
+    auction.bidderId = userId;
     await this.auctionRepository.save(auction);
 
     return savedBid;
@@ -330,7 +339,7 @@ export class AuctionService {
    * @returns List of user's auctions
    */
   async findByUser(userId: number, status?: string): Promise<Auction[]> {
-    const query: any = { publisherId: userId.toString() };
+    const query: any = { publisherId: userId };
     if (status) {
       query.auctionStatus = status;
     }
@@ -349,16 +358,16 @@ export class AuctionService {
   async findUserBids(userId: number): Promise<Auction[]> {
     // Find all bids by the user
     const userBids = await this.bidRepository.find({
-      where: { bidUserId: userId.toString() },
+      where: { bidUserId: userId },
       relations: ['auction'],
     });
 
     // Extract unique auction IDs
-    const auctionIds = [...new Set(userBids.map(bid => bid.auctionId))];
-    
+    const auctionIds = [...new Set(userBids.map((bid) => bid.auctionId))];
+
     // Get all those auctions
     const auctions = await this.auctionRepository.find({
-      where: auctionIds.map(id => ({ id: parseInt(id) })),
+      where: auctionIds.map((id) => ({ id })),
       relations: ['product', 'bidder', 'publisher'],
     });
 
@@ -375,7 +384,7 @@ export class AuctionService {
     const auction = await this.findOne(id);
 
     // Check if user is the publisher
-    if (auction.publisherId !== userId.toString()) {
+    if (auction.publisherId !== userId) {
       throw new AppException(
         'You do not have permission to end this auction',
         ErrorCodes.INSUFFICIENT_PERMISSIONS,
@@ -409,7 +418,7 @@ export class AuctionService {
     const auction = await this.findOne(id);
 
     // Check if user is the publisher
-    if (auction.publisherId !== userId.toString()) {
+    if (auction.publisherId !== userId) {
       throw new AppException(
         'You do not have permission to cancel this auction',
         ErrorCodes.INSUFFICIENT_PERMISSIONS,
@@ -448,31 +457,21 @@ export class AuctionService {
    * Updates status of auctions that have reached their end date
    */
   async processCompletedAuctions(): Promise<void> {
-    // Find products with auctions that have passed their end date
-    const products = await this.productRepository.find({
+    // Find auctions that have passed their end date
+    const expiredAuctions = await this.auctionRepository.find({
       where: {
-        auctionEndDate: LessThan(new Date()),
-        auctionType: AuctionType.BID,
+        endDate: LessThan(new Date()),
+        auctionStatus: AuctionStatus.ACTIVE,
       },
+      relations: ['bids'],
     });
 
-    for (const product of products) {
-      // Find active auctions for this product
-      const auctions = await this.auctionRepository.find({
-        where: {
-          productId: product.id.toString(),
-          auctionStatus: AuctionStatus.ACTIVE,
-        },
-        relations: ['bids'],
-      });
+    for (const auction of expiredAuctions) {
+      // Mark auction as completed
+      auction.auctionStatus = AuctionStatus.COMPLETED;
+      await this.auctionRepository.save(auction);
 
-      for (const auction of auctions) {
-        // Mark auction as completed
-        auction.auctionStatus = AuctionStatus.COMPLETED;
-        await this.auctionRepository.save(auction);
-
-        // If there's a winning bidder, we could trigger contract creation here
-      }
+      // If there's a winning bidder, we could trigger contract creation here
     }
   }
 
@@ -483,18 +482,13 @@ export class AuctionService {
    * @returns Contract if valid
    */
   private async getContractByIdAndVerifyOwner(
-    contractId: string, 
-    userId: string
-  ): Promise<any> {
-    // We would normally import ContractService here, but to avoid circular dependencies,
-    // we'll just make a direct query to the database
-    const connection = this.auctionRepository.manager.connection;
-    const contractRepo = connection.getRepository('Contract');
-    
-    const contract = await contractRepo.findOne({
+    contractId: string,
+    userId: number,
+  ): Promise<Contract> {
+    const contract = await this.contractRepository.findOne({
       where: { contractId },
     });
-    
+
     if (!contract) {
       throw new AppException(
         'Contract not found',
@@ -503,7 +497,7 @@ export class AuctionService {
         { contractId },
       );
     }
-    
+
     // Verify the contract belongs to this user
     if (contract.buyerId !== userId) {
       throw new AppException(
@@ -513,7 +507,7 @@ export class AuctionService {
         { contractId, userId },
       );
     }
-    
+
     return contract;
   }
-} 
+}

@@ -15,6 +15,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../entities/user.entity';
 import { CreateContractDto } from './dto/create-contract.dto';
+import { CustomParseIntPipe } from '../common/pipes/parse-int.pipe';
 
 @Controller('contracts')
 export class ContractController {
@@ -37,6 +38,26 @@ export class ContractController {
   }
 
   /**
+   * Get the current user's contracts
+   * GET /contracts/my
+   */
+  @Get('my')
+  @UseGuards(JwtAuthGuard)
+  async getMyContracts(@Request() req) {
+    return this.contractService.findByBuyer(req.user.id);
+  }
+
+  /**
+   * Get contract by contract ID string
+   * GET /contracts/by-contract-id/:contractId
+   */
+  @Get('by-contract-id/:contractId')
+  @UseGuards(JwtAuthGuard)
+  async getContractByContractId(@Param('contractId') contractId: string) {
+    return this.contractService.findByContractId(contractId);
+  }
+
+  /**
    * Get all contracts (admin only)
    * GET /contracts
    */
@@ -53,27 +74,7 @@ export class ContractController {
    */
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  async getContract(@Param('id', ParseIntPipe) id: number) {
+  async getContract(@Param('id', CustomParseIntPipe) id: number) {
     return this.contractService.findOne(id);
-  }
-
-  /**
-   * Get contract by contract ID string
-   * GET /contracts/by-contract-id/:contractId
-   */
-  @Get('by-contract-id/:contractId')
-  @UseGuards(JwtAuthGuard)
-  async getContractByContractId(@Param('contractId') contractId: string) {
-    return this.contractService.findByContractId(contractId);
-  }
-
-  /**
-   * Get the current user's contracts
-   * GET /contracts/my
-   */
-  @Get('my')
-  @UseGuards(JwtAuthGuard)
-  async getMyContracts(@Request() req) {
-    return this.contractService.findByBuyer(req.user.id);
   }
 } 

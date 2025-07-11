@@ -47,14 +47,16 @@ export class Contract {
   autoMaintenance: boolean;
   
   @Column()
-  buyerId: string;
+  @IsNumber()
+  buyerId: number;
   
   @ManyToOne(() => User)
   @JoinColumn({ name: 'buyerId' })
   buyer: User;
   
   @Column()
-  productId: string;
+  @IsNumber()
+  productId: number;
   
   @ManyToOne(() => Product)
   @JoinColumn({ name: 'productId' })

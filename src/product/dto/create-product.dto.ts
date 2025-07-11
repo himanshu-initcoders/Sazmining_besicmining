@@ -6,7 +6,6 @@ import {
   IsBoolean,
   IsEnum,
   IsUrl,
-  IsDate,
   Min,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
@@ -16,7 +15,6 @@ import {
   ProductStatus,
   PublishStatus,
   AvailabilityStatus,
-  AuctionType,
   StockType,
 } from '../../entities/product.entity';
 
@@ -97,20 +95,6 @@ export class CreateProductDto {
   askPrice: number;
 
   @IsOptional()
-  @IsEnum(AuctionType)
-  auctionType?: AuctionType = AuctionType.FIXED;
-
-  @IsOptional()
-  @IsDate()
-  @Type(() => Date)
-  auctionStartDate?: Date;
-
-  @IsOptional()
-  @IsDate()
-  @Type(() => Date)
-  auctionEndDate?: Date;
-
-  @IsOptional()
   @IsString()
   contractId?: string;
 
@@ -128,4 +112,10 @@ export class CreateProductDto {
   @IsOptional()
   @IsEnum(StockType)
   stockType?: StockType = StockType.LIMITED;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  quantity?: number = 0;
 }

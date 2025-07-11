@@ -13,7 +13,6 @@ import {
   ProductStatus,
   PublishStatus,
   AvailabilityStatus,
-  AuctionType,
   StockType,
 } from '../../entities/product.entity';
 
@@ -42,9 +41,7 @@ export class ProductQueryDto extends PaginationDto {
   @IsEnum(AvailabilityStatus)
   availability?: AvailabilityStatus;
 
-  @IsOptional()
-  @IsEnum(AuctionType)
-  auctionType?: AuctionType;
+
 
   @IsOptional()
   @IsEnum(StockType)

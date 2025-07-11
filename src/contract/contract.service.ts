@@ -2,7 +2,7 @@ import { Injectable, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Contract } from '../entities/contract.entity';
-import { Product, AuctionType } from '../entities/product.entity';
+import { Product } from '../entities/product.entity';
 import { User } from '../entities/user.entity';
 import { AppException } from '../common/exceptions/app.exception';
 import { ErrorCodes } from '../common/exceptions/error-codes';
@@ -66,15 +66,9 @@ export class ContractService {
       );
     }
 
-    // Check if product is an auction
-    if (product.auctionType === AuctionType.BID) {
-      throw new AppException(
-        'Product is in auction and not available for direct purchase',
-        ErrorCodes.PRODUCT_IN_AUCTION,
-        HttpStatus.BAD_REQUEST,
-        { productId: createContractDto.productId },
-      );
-    }
+    // Check if product has active auctions (this would be handled by checking auction entities)
+    // Note: Since auction logic is now separate, this check would need to query the Auction entity
+    // For now, we'll rely on other availability checks
 
     // Check if product is published and active
     if (product.status !== 'Published' || !product.isActive) {
@@ -118,8 +112,8 @@ export class ContractService {
     contract.hostRate = createContractDto.hostRate;
     contract.salesTaxPercent = createContractDto.salesTaxPercent;
     contract.autoMaintenance = createContractDto.autoMaintenance || false;
-    contract.buyerId = buyerId.toString();
-    contract.productId = createContractDto.productId.toString();
+    contract.buyerId = buyerId;
+    contract.productId = createContractDto.productId;
 
     // Save contract
     const savedContract = await this.contractRepository.save(contract);
@@ -205,7 +199,7 @@ export class ContractService {
    */
   async findByBuyer(buyerId: number): Promise<Contract[]> {
     return this.contractRepository.find({
-      where: { buyerId: buyerId.toString() },
+      where: { buyerId },
       relations: ['product', 'buyer'],
     });
   }

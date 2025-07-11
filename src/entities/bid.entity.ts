@@ -18,7 +18,8 @@ export class Bid {
 
   @Column()
   @IsNotEmpty()
-  auctionId: string;
+  @IsNumber()
+  auctionId: number;
 
   @ManyToOne(() => Auction, (auction) => auction.bids)
   @JoinColumn({ name: 'auctionId' })
@@ -26,7 +27,8 @@ export class Bid {
 
   @Column()
   @IsNotEmpty()
-  bidUserId: string;
+  @IsNumber()
+  bidUserId: number;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'bidUserId' })

@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsDate } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateAuctionDto {
   @IsNotEmpty()
@@ -7,7 +8,17 @@ export class CreateAuctionDto {
 
   @IsNotEmpty()
   @IsNumber()
-  productPrice: number;
+  startingPrice: number;
+
+  @IsNotEmpty()
+  @IsDate()
+  @Type(() => Date)
+  startDate: Date;
+
+  @IsNotEmpty()
+  @IsDate()
+  @Type(() => Date)
+  endDate: Date;
 
   @IsOptional()
   @IsString()

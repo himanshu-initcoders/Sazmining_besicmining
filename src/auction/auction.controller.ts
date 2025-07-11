@@ -19,9 +19,9 @@ import { UserRole } from '../entities/user.entity';
 import { CreateAuctionDto } from './dto/create-auction.dto';
 import { PlaceBidDto } from './dto/place-bid.dto';
 import { TransformInterceptor } from '../common/interceptors/transform.interceptor';
+import { CustomParseIntPipe } from '../common/pipes/parse-int.pipe';
 
 @Controller('auctions')
-@UseInterceptors(TransformInterceptor)
 export class AuctionController {
   constructor(private readonly auctionService: AuctionService) {}
 
@@ -41,7 +41,7 @@ export class AuctionController {
    * GET /auctions/public/:id
    */
   @Get('public/:id')
-  async getPublicAuction(@Param('id', ParseIntPipe) id: number) {
+  async getPublicAuction(@Param('id', CustomParseIntPipe) id: number) {
     return this.auctionService.findOne(id);
   }
 
@@ -74,15 +74,7 @@ export class AuctionController {
     return this.auctionService.findAll(status);
   }
 
-  /**
-   * Get auction by ID
-   * GET /auctions/:id
-   */
-  @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  async getAuction(@Param('id', ParseIntPipe) id: number) {
-    return this.auctionService.findOne(id);
-  }
+ 
 
   /**
    * Get auctions created by current user
@@ -96,6 +88,8 @@ export class AuctionController {
   ) {
     return this.auctionService.findByUser(req.user.id, status);
   }
+
+ 
 
   /**
    * Get auctions the current user has bid on
@@ -123,6 +117,16 @@ export class AuctionController {
     );
   }
 
+    /**
+   * Get auction by ID
+   * GET /auctions/:id
+   */
+    @Get(':id')
+    @UseGuards(JwtAuthGuard)
+    async getAuction(@Param('id', CustomParseIntPipe) id: number) {
+      return this.auctionService.findOne(id);
+    }
+
   /**
    * End an auction (seller only)
    * PATCH /auctions/:id/end
@@ -130,7 +134,7 @@ export class AuctionController {
   @Patch(':id/end')
   @UseGuards(JwtAuthGuard)
   async endAuction(
-    @Param('id', ParseIntPipe) id: number, 
+    @Param('id', CustomParseIntPipe) id: number, 
     @Request() req,
   ) {
     return this.auctionService.endAuction(id, req.user.id);
@@ -143,7 +147,7 @@ export class AuctionController {
   @Patch(':id/cancel')
   @UseGuards(JwtAuthGuard)
   async cancelAuction(
-    @Param('id', ParseIntPipe) id: number, 
+    @Param('id', CustomParseIntPipe) id: number, 
     @Request() req,
   ) {
     return this.auctionService.cancelAuction(id, req.user.id);

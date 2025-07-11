@@ -6,9 +6,10 @@ import { Auction } from '../entities/auction.entity';
 import { Bid } from '../entities/bid.entity';
 import { Product } from '../entities/product.entity';
 import { User } from '../entities/user.entity';
+import { Contract } from '../entities/contract.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Auction, Bid, Product, User])],
+  imports: [TypeOrmModule.forFeature([Auction, Bid, Product, User, Contract])],
   controllers: [AuctionController],
   providers: [AuctionService],
   exports: [AuctionService],

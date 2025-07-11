@@ -4,15 +4,18 @@ import { ValidationPipe } from '@nestjs/common';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import * as cookieParser from 'cookie-parser';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { CustomValidationPipe } from './common/pipes/validation.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Enable CORS
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: ['http://localhost:3000', 'http://localhost:3001' , 'http://127.0.0.1:3000',
+    'https://64d1f18f105c.ngrok-free.app'],
     credentials: true,
   });
+  
   // Apply global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({

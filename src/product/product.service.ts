@@ -66,34 +66,12 @@ export class ProductService {
       );
     }
 
-    // Validate auction dates if it's a bid auction
-    if (createProductDto.auctionType === 'Bid') {
-      if (
-        !createProductDto.auctionStartDate ||
-        !createProductDto.auctionEndDate
-      ) {
-        throw new AppException(
-          'Auction start and end dates are required for bid auctions',
-          ErrorCodes.INVALID_AUCTION_DATES,
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      if (
-        createProductDto.auctionStartDate >= createProductDto.auctionEndDate
-      ) {
-        throw new AppException(
-          'Auction end date must be after start date',
-          ErrorCodes.INVALID_AUCTION_DATES,
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    }
+    // Note: Auction dates validation is now handled in AuctionService when creating auctions
 
     // Create the product
     const newProduct = new Product();
     Object.assign(newProduct, createProductDto);
-    newProduct.userId = userId.toString();
+    newProduct.userId = userId;
 
     return await this.productRepository.save(newProduct);
   }
@@ -252,7 +230,7 @@ export class ProductService {
   async update(
     id: number,
     updateProductDto: UpdateProductDto,
-    userId: string,
+    userId: number,
   ): Promise<Product> {
     const product = await this.findOne(id);
 
@@ -285,28 +263,7 @@ export class ProductService {
       }
     }
 
-    // Validate auction dates if updating to bid auction
-    if (updateProductDto.auctionType === 'Bid') {
-      const startDate =
-        updateProductDto.auctionStartDate || product.auctionStartDate;
-      const endDate = updateProductDto.auctionEndDate || product.auctionEndDate;
-
-      if (!startDate || !endDate) {
-        throw new AppException(
-          'Auction start and end dates are required for bid auctions',
-          ErrorCodes.INVALID_AUCTION_DATES,
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      if (startDate >= endDate) {
-        throw new AppException(
-          'Auction end date must be after start date',
-          ErrorCodes.INVALID_AUCTION_DATES,
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    }
+    // Note: Auction dates validation is now handled in AuctionService when creating auctions
 
     // Update the product
     const updatedProduct = { ...product, ...updateProductDto };
@@ -318,7 +275,7 @@ export class ProductService {
    * @param id Product ID
    * @param userId User deleting the product
    */
-  async remove(id: number, userId: string): Promise<void> {
+  async remove(id: number, userId: number): Promise<void> {
     const product = await this.findOne(id);
 
     // Check if user owns the product
@@ -344,7 +301,7 @@ export class ProductService {
   async uploadImage(
     productId: number,
     file: Express.Multer.File,
-    userId: string,
+    userId: number,
   ): Promise<Product> {
     const product = await this.findOne(productId);
 
@@ -519,7 +476,6 @@ export class ProductService {
       productStatus,
       status,
       availability,
-      auctionType,
       stockType,
       minPrice,
       maxPrice,
@@ -565,11 +521,7 @@ export class ProductService {
       });
     }
 
-    if (auctionType) {
-      queryBuilder.andWhere('product.auctionType = :auctionType', {
-        auctionType,
-      });
-    }
+
 
     if (stockType) {
       queryBuilder.andWhere('product.stockType = :stockType', { stockType });

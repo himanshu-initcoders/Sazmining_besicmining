@@ -13,7 +13,6 @@ import {
   IsBoolean,
   IsNumber,
   IsOptional,
-  IsDate,
   IsUrl,
 } from 'class-validator';
 import { User } from './user.entity';
@@ -45,11 +44,6 @@ export enum AvailabilityStatus {
   IN_STOCK = 'In Stock',
   OUT_OF_STOCK = 'Out of Stock',
   PRE_ORDER = 'Pre Order',
-}
-
-export enum AuctionType {
-  BID = 'Bid',
-  FIXED = 'Fixed',
 }
 
 export enum StockType {
@@ -150,23 +144,6 @@ export class Product {
   @IsNumber()
   askPrice: number;
 
-  @Column({
-    type: 'enum',
-    enum: AuctionType,
-    default: AuctionType.FIXED,
-  })
-  auctionType: string;
-
-  @Column({ nullable: true, type: 'timestamp' })
-  @IsOptional()
-  @IsDate()
-  auctionStartDate: Date;
-
-  @Column({ nullable: true, type: 'timestamp' })
-  @IsOptional()
-  @IsDate()
-  auctionEndDate: Date;
-
   @Column({ nullable: true })
   @IsOptional()
   contractId: string;
@@ -196,7 +173,9 @@ export class Product {
   user: User;
 
   @Column({ nullable: true })
-  userId?: string;
+  @IsOptional()
+  @IsNumber()
+  userId?: number;
 
   @CreateDateColumn()
   createdAt: Date;

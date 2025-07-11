@@ -9,7 +9,7 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsDate } from 'class-validator';
 import { Product } from './product.entity';
 import { User } from './user.entity';
 import { Bid } from './bid.entity';
@@ -28,14 +28,16 @@ export class Auction {
 
   @Column()
   @IsNotEmpty()
-  productId: string;
+  @IsNumber()
+  productId: number;
 
   @ManyToOne(() => Product)
   @JoinColumn({ name: 'productId' })
   product: Product;
 
   @Column({ nullable: true })
-  bidderId: string;
+  @IsNumber()
+  bidderId: number;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'bidderId' })
@@ -43,7 +45,8 @@ export class Auction {
 
   @Column()
   @IsNotEmpty()
-  publisherId: string;
+  @IsNumber()
+  publisherId: number;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'publisherId' })
@@ -52,7 +55,17 @@ export class Auction {
   @Column({ type: 'float' })
   @IsNumber()
   @IsNotEmpty()
-  productPrice: number;
+  startingPrice: number;
+
+  @Column({ type: 'timestamp' })
+  @IsNotEmpty()
+  @IsDate()
+  startDate: Date;
+
+  @Column({ type: 'timestamp' })
+  @IsNotEmpty()
+  @IsDate()
+  endDate: Date;
 
   @Column({
     type: 'enum',
@@ -61,7 +74,7 @@ export class Auction {
   })
   auctionStatus: string;
 
-  @OneToMany(() => Bid, (bid) => bid.auctionId)
+  @OneToMany(() => Bid, (bid) => bid.auction)
   bids: Bid[];
 
   @CreateDateColumn()
