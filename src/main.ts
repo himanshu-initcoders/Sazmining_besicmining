@@ -7,12 +7,44 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { CustomValidationPipe } from './common/pipes/validation.pipe';
 
 async function bootstrap() {
+  // Check for various production environment indicators
+  const isProduction = 
+    process.env.NODE_ENV === 'production' || 
+    process.env.NODE_ENV === 'prod' || 
+    process.env.ENV === 'production' || 
+    process.env.ENV === 'prod' ||
+    process.env.ENVIRONMENT === 'production' || 
+    process.env.ENVIRONMENT === 'prod';
+
+  const environment = isProduction ? 'PRODUCTION' : 'DEVELOPMENT';
+  
+  console.log(`🚀 Application starting in ${environment} mode`);
+  console.log(`📊 Environment variables detected:
+  - NODE_ENV: ${process.env.NODE_ENV || 'not set'}
+  - ENV: ${process.env.ENV || 'not set'}
+  - ENVIRONMENT: ${process.env.ENVIRONMENT || 'not set'}`);
+
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS
+  // Configure CORS based on environment
+  const allowedOrigins = isProduction 
+    ? [
+        // Add your production frontend URLs here
+        process.env.FRONTEND_URL,
+        'https://besicmining.com',
+        'https://www.besicmining.com'
+      ].filter(Boolean) // Remove undefined values
+    : [
+        'http://localhost:3000', 
+        'http://localhost:3001', 
+        'http://127.0.0.1:3000',
+        'https://64d1f18f105c.ngrok-free.app'
+      ];
+
+  console.log(`🌐 CORS enabled for origins: ${allowedOrigins.join(', ')}`);
+  
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001' , 'http://127.0.0.1:3000',
-    'https://64d1f18f105c.ngrok-free.app'],
+    origin: allowedOrigins,
     credentials: true,
   });
   
@@ -38,6 +70,6 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}/api/v1`);
+  console.log(`✅ Application is running on: http://localhost:${port}/api/v1`);
 }
 bootstrap();
