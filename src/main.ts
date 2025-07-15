@@ -32,7 +32,9 @@ async function bootstrap() {
         // Add your production frontend URLs here
         process.env.FRONTEND_URL,
         'https://besicmining.com',
-        'https://www.besicmining.com'
+        'https://www.besicmining.com',
+        'https://dev-sazmining-20250715-b3031ffe06af.herokuapp.com',
+        'https://dev-sazmining-fe-v1-20250715.vercel.app/'
       ].filter(Boolean) // Remove undefined values
     : [
         'http://localhost:3000', 
