@@ -12,7 +12,7 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main.js",
-    "heroku-postbuild": "echo 'Building application...' && npm run build && echo 'Build completed' && ls -la dist/ && echo 'Checking main.js:' && ls -la dist/main.js",
+    "heroku-postbuild": "echo 'Starting build...' && npm run build && echo 'Build completed' && ls -la dist/",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
