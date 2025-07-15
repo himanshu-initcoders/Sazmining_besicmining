@@ -14,6 +14,8 @@ import { RefreshToken } from '../entities/refresh-token.entity';
 
 dotenv.config();
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const options: DataSourceOptions & SeederOptions = {
   type: 'postgres',
   host: process.env.DATABASE_HOST || 'localhost',
@@ -31,9 +33,21 @@ const options: DataSourceOptions & SeederOptions = {
     Contract,
     RefreshToken,
   ],
-  synchronize: process.env.NODE_ENV !== 'production',
-  logging: process.env.NODE_ENV !== 'production',
+  synchronize: !isProduction,
+  logging: !isProduction,
   migrations: [join(__dirname, '../database/migrations/*.{ts,js}')],
+  // SSL configuration for production (Heroku)
+  ssl: isProduction ? {
+    rejectUnauthorized: false, // Required for Heroku Postgres
+  } : false,
+  // Additional connection options for production
+  ...(isProduction && {
+    extra: {
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    },
+  }),
 };
 
 export const databaseConfig: TypeOrmModuleOptions = options;
