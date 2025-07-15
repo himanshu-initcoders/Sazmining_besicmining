@@ -70,12 +70,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refreshTokens(
     @Req() request,
-    @Body() refreshTokenDto: RefreshTokenDto,
     @Res({ passthrough: true }) response: Response,
   ) {
     // Get token from cookie or request body
     const refreshToken =
-      request.cookies?.refresh_token || refreshTokenDto.refreshToken;
+      request.cookies?.refresh_token;
 
     if (!refreshToken) {
       throw new AppException(

@@ -178,7 +178,7 @@ export class ProductService {
   async findOne(id: number): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['user', 'auctions' , 'auctions.bids' , 'auctions.bids.bidUser'],
     });
 
     if (!product) {
@@ -205,7 +205,7 @@ export class ProductService {
         status: PublishStatus.PUBLISHED,
         isActive: true,
       },
-      relations: ['user'],
+      relations: ['user' , 'auctions' , 'auctions.bids' , 'auctions.bids.bidUser'],
     });
 
     if (!product) {

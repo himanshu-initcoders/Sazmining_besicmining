@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
   JoinColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import {
   IsNotEmpty,
@@ -16,6 +17,7 @@ import {
   IsUrl,
 } from 'class-validator';
 import { User } from './user.entity';
+import { Auction } from './auction.entity';
 
 export enum ProductType {
   MARKETPLACE = 'marketplace',
@@ -167,6 +169,9 @@ export class Product {
   @Column({ default: 0 })
   @IsNumber()
   quantity: number;
+
+  @OneToMany(() => Auction, (auction) => auction.product)
+  auctions: Auction[];
 
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn({ name: 'userId' })

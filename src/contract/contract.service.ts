@@ -44,7 +44,7 @@ export class ContractService {
     // Verify product exists
     const product = await this.productRepository.findOne({
       where: { id: createContractDto.productId },
-      relations: ['user'],
+      relations: ['user', 'auctions'],
     });
 
     if (!product) {
@@ -144,7 +144,7 @@ export class ContractService {
   async findOne(id: number): Promise<Contract> {
     const contract = await this.contractRepository.findOne({
       where: { id },
-      relations: ['product', 'buyer'],
+      relations: ['product', 'product.auctions', 'buyer'],
     });
 
     if (!contract) {
@@ -167,7 +167,7 @@ export class ContractService {
   async findByContractId(contractId: string): Promise<Contract> {
     const contract = await this.contractRepository.findOne({
       where: { contractId },
-      relations: ['product', 'buyer'],
+      relations: ['product', 'product.auctions', 'buyer'],
     });
 
     if (!contract) {
@@ -188,7 +188,7 @@ export class ContractService {
    */
   async findAll(): Promise<Contract[]> {
     return this.contractRepository.find({
-      relations: ['product', 'buyer'],
+      relations: ['product', 'product.auctions', 'buyer'],
     });
   }
 
@@ -200,7 +200,7 @@ export class ContractService {
   async findByBuyer(buyerId: number): Promise<Contract[]> {
     return this.contractRepository.find({
       where: { buyerId },
-      relations: ['product', 'buyer'],
+      relations: ['product', 'product.auctions', 'buyer'],
     });
   }
 } 

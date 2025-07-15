@@ -50,6 +50,7 @@ export class AuctionService {
     // Verify product exists and belongs to user or user has purchased it
     const product = await this.productRepository.findOne({
       where: { id: createAuctionDto.productId },
+      relations: ['auctions'],
     });
 
     if (!product) {
@@ -192,7 +193,7 @@ export class AuctionService {
     // Verify auction exists and is active
     const auction = await this.auctionRepository.findOne({
       where: { id: placeBidDto.auctionId },
-      relations: ['product'],
+      relations: ['product', 'product.user'],
     });
 
     if (!auction) {
@@ -300,7 +301,7 @@ export class AuctionService {
   async findOne(id: number): Promise<Auction> {
     const auction = await this.auctionRepository.findOne({
       where: { id },
-      relations: ['product', 'bidder', 'publisher', 'bids', 'bids.bidUser'],
+      relations: ['product', 'product.user', 'bidder', 'publisher', 'bids', 'bids.bidUser'],
     });
 
     if (!auction) {
@@ -328,7 +329,7 @@ export class AuctionService {
 
     return this.auctionRepository.find({
       where: query,
-      relations: ['product', 'bidder', 'publisher'],
+      relations: ['product', 'product.user', 'bidder', 'publisher'],
     });
   }
 
@@ -346,7 +347,7 @@ export class AuctionService {
 
     return this.auctionRepository.find({
       where: query,
-      relations: ['product', 'bidder', 'publisher'],
+      relations: ['product', 'product.user', 'bidder', 'publisher'],
     });
   }
 
@@ -368,7 +369,7 @@ export class AuctionService {
     // Get all those auctions
     const auctions = await this.auctionRepository.find({
       where: auctionIds.map((id) => ({ id })),
-      relations: ['product', 'bidder', 'publisher'],
+      relations: ['product', 'product.user', 'bidder', 'publisher'],
     });
 
     return auctions;

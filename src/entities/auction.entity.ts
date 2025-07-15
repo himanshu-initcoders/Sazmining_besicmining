@@ -1,7 +1,6 @@
 import {
   Entity,
   Column,
-  ObjectIdColumn,
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
@@ -31,7 +30,7 @@ export class Auction {
   @IsNumber()
   productId: number;
 
-  @ManyToOne(() => Product)
+  @ManyToOne(() => Product, (product) => product.auctions)
   @JoinColumn({ name: 'productId' })
   product: Product;
 
