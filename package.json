@@ -31,6 +31,7 @@
     "db:seed:specific": "ts-node ./node_modules/typeorm-extension/bin/cli.cjs seed:run -d src/config/database.config.ts --name"
   },
   "dependencies": {
+    "@nestjs/cli": "^11.0.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -55,12 +56,12 @@
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.25",
     "typeorm-extension": "^3.7.1",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "typescript": "^5.7.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
-    "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@swc/cli": "^0.6.0",
@@ -83,7 +84,6 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
