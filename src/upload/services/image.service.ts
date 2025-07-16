@@ -166,11 +166,30 @@ export class ImageService {
   ): Promise<UploadResult> {
     try {
       const cloudinary = await import('cloudinary');
-
+      
+      const cloudName = this.configService.get<string>('CLOUDINARY_CLOUD_NAME');
+      const apiKey = this.configService.get<string>('CLOUDINARY_API_KEY');
+      const apiSecret = this.configService.get<string>('CLOUDINARY_API_SECRET');
+      
+      console.log('🔧 Cloudinary Configuration Debug:');
+      console.log(`- CLOUDINARY_CLOUD_NAME: ${cloudName || 'undefined'}`);
+      console.log(`- CLOUDINARY_API_KEY: ${apiKey || 'undefined'}`);
+      console.log(`- CLOUDINARY_API_SECRET: ${apiSecret ? 'set' : 'undefined'}`);
+      
+      if (!cloudName || !apiKey || !apiSecret) {
+        throw new BadRequestException(
+          `Missing Cloudinary configuration: ${[
+            !cloudName && 'CLOUDINARY_CLOUD_NAME',
+            !apiKey && 'CLOUDINARY_API_KEY', 
+            !apiSecret && 'CLOUDINARY_API_SECRET'
+          ].filter(Boolean).join(', ')}`
+        );
+      }
+      
       cloudinary.v2.config({
-        cloud_name: this.configService.get<string>('CLOUDINARY_CLOUD_NAME'),
-        api_key: this.configService.get<string>('CLOUDINARY_API_KEY'),
-        api_secret: this.configService.get<string>('CLOUDINARY_API_SECRET'),
+        cloud_name: cloudName,
+        api_key: apiKey,
+        api_secret: apiSecret,
       });
 
       const folder = options.folder || 'images';

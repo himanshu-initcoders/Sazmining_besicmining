@@ -1,3 +1,7 @@
+// Load environment variables first
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -22,7 +26,10 @@ async function bootstrap() {
   console.log(`📊 Environment variables detected:
   - NODE_ENV: ${process.env.NODE_ENV || 'not set'}
   - ENV: ${process.env.ENV || 'not set'}
-  - ENVIRONMENT: ${process.env.ENVIRONMENT || 'not set'}`);
+  - ENVIRONMENT: ${process.env.ENVIRONMENT || 'not set'}
+  - CLOUDINARY_CLOUD_NAME: ${process.env.CLOUDINARY_CLOUD_NAME || 'not set'}
+  - CLOUDINARY_API_KEY: ${process.env.CLOUDINARY_API_KEY || 'not set'}
+  - CLOUDINARY_API_SECRET: ${process.env.CLOUDINARY_API_SECRET ? 'set' : 'not set'}`);
 
   const app = await NestFactory.create(AppModule);
 
