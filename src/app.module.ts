@@ -38,6 +38,8 @@ import { APP_FILTER } from '@nestjs/core';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env', // Explicitly specify the .env file path
+      expandVariables: true, // Enable variable expansion
     }),
     TypeOrmModule.forFeature([
       User,

@@ -28,6 +28,7 @@ export enum CoolingType {
   AIR = 'air',
   LIQUID = 'liquid',
   IMMERSION = 'immersion',
+  WATER = 'water',
 }
 
 export enum ProductStatus {

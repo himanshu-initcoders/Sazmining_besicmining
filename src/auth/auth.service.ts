@@ -42,19 +42,6 @@ export class AuthService {
       );
     }
 
-    // Check if username already exists
-    const existingUsername = await this.usersRepository.findOne({
-      where: { username: signupDto.username },
-    });
-
-    if (existingUsername) {
-      throw new AppException(
-        'Username already in use',
-        'USERNAME_ALREADY_EXISTS',
-        HttpStatus.CONFLICT,
-        { username: signupDto.username },
-      );
-    }
 
     // Validate terms agreement
     if (!signupDto.termsAgreed) {
@@ -99,18 +86,27 @@ export class AuthService {
   }
 
   private calculateProfileCompletion(user: Partial<User>): number {
-    const fields = [
+    const requiredFields = [
       'email',
+      'termsAgreed',
+    ];
+    
+    const optionalFields = [
       'username',
       'name',
       'phone',
       'profilePhoto',
-      'termsAgreed',
     ];
 
-    const completedFields = fields.filter((field) => !!user[field]).length;
+    // Required fields contribute more to completion
+    const requiredFieldsCount = requiredFields.filter((field) => !!user[field]).length;
+    const optionalFieldsCount = optionalFields.filter((field) => !!user[field]).length;
+    
+    const totalWeight = requiredFields.length + optionalFields.length;
+    const completedWeight = requiredFieldsCount + optionalFieldsCount;
+    
     const completionPercentage = Math.floor(
-      (completedFields / fields.length) * 100,
+      (completedWeight / totalWeight) * 100,
     );
 
     return completionPercentage;
