@@ -45,15 +45,15 @@ export class User {
   @IsBoolean()
   termsAgreed: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   @IsString()
-  @IsNotEmpty()
-  username: string;
+  @IsOptional()
+  username?: string;
 
-  @Column()
+  @Column({ nullable: true })
   @IsString()
-  @IsNotEmpty()
-  name: string;
+  @IsOptional()
+  name?: string;
 
   @Column({ nullable: true })
   @IsString()

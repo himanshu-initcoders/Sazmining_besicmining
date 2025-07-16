@@ -1,13 +1,12 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { Contract } from '../entities/contract.entity';
 import { Product } from '../entities/product.entity';
 import { User } from '../entities/user.entity';
 import { AppException } from '../common/exceptions/app.exception';
 import { ErrorCodes } from '../common/exceptions/error-codes';
 import { CreateContractDto } from './dto/create-contract.dto';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ContractService {
@@ -100,8 +99,21 @@ export class ContractService {
       );
     }
 
-    // Generate a unique contract ID
-    const contractId = uuidv4();
+    // Generate a contract ID based on product serial number
+    // Extract the prefix from the product serial number (e.g., "ANT" from "ANT-S19P-001")
+    const serialPrefix = product.serialNumber.split('-')[0];
+    
+    // Count existing contracts with the same product prefix
+    const existingContracts = await this.contractRepository.find({
+      where: {
+        contractId: Like(`${serialPrefix}-%`),
+      },
+    });
+    const existingContractsCount = existingContracts.length;
+    
+    // Generate new contract ID (e.g., ANT-001)
+    const sequenceNumber = existingContractsCount + 1;
+    const contractId = `${serialPrefix}-${String(sequenceNumber).padStart(3, '0')}`;
 
     // Create contract
     const contract = new Contract();
