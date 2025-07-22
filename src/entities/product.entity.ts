@@ -38,6 +38,7 @@ export enum ProductStatus {
 }
 
 export enum PublishStatus {
+  MINING = 'Mining',
   PUBLISHED = 'Published',
   DRAFT = 'Draft',
   PENDING = 'Pending',

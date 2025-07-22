@@ -1,6 +1,6 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder, Between } from 'typeorm';
+import { Repository, SelectQueryBuilder, Between, Brackets } from 'typeorm';
 import {
   Product,
   ProductStatus,
@@ -115,11 +115,23 @@ export class ProductService {
   async findPublished(
     queryDto: ProductQueryDto,
   ): Promise<PaginatedResponse<Product>> {
-    const queryBuilder = this.productRepository
+    /* const queryBuilder = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.user', 'user')
       .where('product.status = :status', { status: PublishStatus.PUBLISHED })
+      .andWhere('product.isActive = :isActive', { isActive: true }); */
+
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.user', 'user')
+      .where(
+        new Brackets(qb => {
+          qb.where('product.status = :published', { published: PublishStatus.PUBLISHED })
+            .orWhere('product.status = :mining', { mining: PublishStatus.MINING });
+        }),
+      )
       .andWhere('product.isActive = :isActive', { isActive: true });
+
 
     // Apply additional filters
     this.applyFilters(queryBuilder, queryDto);
@@ -200,11 +212,18 @@ export class ProductService {
    */
   async findPublishedOne(id: number): Promise<Product> {
     const product = await this.productRepository.findOne({
-      where: {
-        id,
-        status: PublishStatus.PUBLISHED,
-        isActive: true,
-      },
+      where: [
+        {
+          id,
+          status: PublishStatus.PUBLISHED,
+          isActive: true,
+        },
+        {
+          id,
+          status: PublishStatus.MINING,
+          isActive: true,
+        },
+      ],
       relations: ['user' , 'auctions' , 'auctions.bids' , 'auctions.bids.bidUser'],
     });
 
