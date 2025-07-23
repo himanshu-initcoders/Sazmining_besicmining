@@ -111,17 +111,17 @@ export class CartService {
     }
 
     // Check quantity availability for limited stock products
-    if (product.stockType === 'limited') {
-      // Check if there's enough stock available
-      if (product.quantity < quantity) {
-        throw new AppException(
-          `Not enough stock available. Requested: ${quantity}, Available: ${product.quantity}`,
-          ErrorCodes.INSUFFICIENT_STOCK,
-          HttpStatus.BAD_REQUEST,
-          { productId, requested: quantity, available: product.quantity },
-        );
-      }
-    }
+    // if (product.stockType === 'limited') {
+    //   // Check if there's enough stock available
+    //   if (product.quantity < quantity) {
+    //     throw new AppException(
+    //       `Not enough stock available. Requested: ${quantity}, Available: ${product.quantity}`,
+    //       ErrorCodes.INSUFFICIENT_STOCK,
+    //       HttpStatus.BAD_REQUEST,
+    //       { productId, requested: quantity, available: product.quantity },
+    //     );
+    //   }
+    // }
 
     // Check if item already exists in cart
     let cartItem = await this.cartItemRepository.findOne({
