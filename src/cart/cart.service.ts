@@ -81,7 +81,7 @@ export class CartService {
     }
 
     // Check if product is published and active
-    if (product.status !== 'Published' || !product.isActive) {
+    if (product.status !== 'Published' && product.status !== 'Mining' || !product.isActive) {
       throw new AppException(
         `Product is not available for purchase`,
         ErrorCodes.PRODUCT_NOT_AVAILABLE,
