@@ -112,6 +112,11 @@ export class Product {
   })
   type: string;
 
+  @Column({ nullable: true })
+  @IsOptional()
+  @IsString()
+  location: string;
+
   @Column({
     type: 'enum',
     enum: CoolingType,
