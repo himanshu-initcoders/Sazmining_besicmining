@@ -157,6 +157,11 @@ export class Product {
   @IsOptional()
   contractId: string;
 
+  @Column({ type: 'float', nullable: true })
+  @IsOptional()
+  @IsNumber()
+  dailyMiningCost: number;
+
   @Column({ nullable: true, type: 'float' })
   @IsOptional()
   @IsNumber()

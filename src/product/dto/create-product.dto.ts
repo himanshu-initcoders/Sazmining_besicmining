@@ -109,6 +109,11 @@ export class CreateProductDto {
   shippingPrice?: number;
 
   @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  dailyMiningCost?: number;
+
+  @IsOptional()
   @IsBoolean()
   @Transform(({ value }) => value === 'true' || value === true)
   hosting?: boolean = false;
